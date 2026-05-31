@@ -46,7 +46,7 @@
           <div class="server-input-wrap">
             <el-input
               v-model="corsProxy"
-              placeholder="留空则直接请求"
+              placeholder="默认使用 corsproxy.io 代理"
               size="small"
               clearable
               @change="onProxyChange"
@@ -64,7 +64,7 @@
 
     <!-- 移动端：服务器地址弹窗 -->
     <el-dialog v-if="isMobile" v-model="showServerDialog" title="服务器设置" width="90%" :append-to-body="true">
-      <el-input v-model="corsProxy" placeholder="留空则直接请求" clearable @change="onProxyChange" />
+      <el-input v-model="corsProxy" placeholder="默认使用 corsproxy.io 代理" clearable @change="onProxyChange" />
       <template #footer>
         <el-button type="primary" @click="showServerDialog = false">确定</el-button>
       </template>
@@ -315,7 +315,7 @@ function onProxyChange(val) {
   if (val) {
     ElMessage.success('代理地址已更新')
   } else {
-    ElMessage.success('已切换为直接请求模式')
+    ElMessage.success('已恢复默认代理')
   }
 }
 

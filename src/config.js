@@ -4,14 +4,16 @@
  *
  * 优先级（从高到低）：
  * 1. localStorage 中 'cors_proxy' 的值（运行时修改，无需重新构建）
- * 2. 空字符串（表示不使用代理，直接请求）
+ * 2. 默认值：https://corsproxy.io/?url=
  */
+
+const DEFAULT_PROXY = 'https://corsproxy.io/?url='
 
 export function getCorsProxy() {
   if (typeof localStorage !== 'undefined') {
-    return localStorage.getItem('cors_proxy') || ''
+    return localStorage.getItem('cors_proxy') || DEFAULT_PROXY
   }
-  return ''
+  return DEFAULT_PROXY
 }
 
 export function setCorsProxy(url) {
