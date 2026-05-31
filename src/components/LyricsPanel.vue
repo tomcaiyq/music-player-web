@@ -112,14 +112,14 @@
             <span class="mode-label" v-if="playMode === 'single'">1</span>
           </div>
           <div class="ctrl-btn" @click="$emit('prev')">
-            <el-icon :size="24"><Back /></el-icon>
+            <el-icon :size="24"><CaretLeft /></el-icon>
           </div>
           <div class="ctrl-btn play-btn" @click="$emit('toggle-play')">
             <el-icon :size="28" v-if="!isPlaying"><VideoPlay /></el-icon>
             <el-icon :size="28" v-else><VideoPause /></el-icon>
           </div>
           <div class="ctrl-btn" @click="$emit('next')">
-            <el-icon :size="24"><Right /></el-icon>
+            <el-icon :size="24"><CaretRight /></el-icon>
           </div>
           <div class="ctrl-btn" @click="$emit('toggle-playlist')">
             <el-icon :size="22"><List /></el-icon>
@@ -132,7 +132,7 @@
 
 <script setup>
 import { ref, computed, watch, nextTick } from 'vue'
-import { Headset, Close, Back, VideoPlay, VideoPause, Right, List, StarFilled, Operation, MagicStick, RefreshLeft } from '@element-plus/icons-vue'
+import { Headset, Close, CaretLeft, VideoPlay, VideoPause, CaretRight, List, StarFilled, Operation, MagicStick, RefreshLeft } from '@element-plus/icons-vue'
 
 const props = defineProps({
   visible: Boolean,

@@ -106,14 +106,14 @@
         <!-- 控制按钮 -->
         <div class="control-buttons">
           <el-button text circle @click="prevSong" class="ctrl-btn-prev">
-            <el-icon :size="32"><Back /></el-icon>
+            <el-icon :size="32"><CaretLeft /></el-icon>
           </el-button>
           <el-button text circle @click="togglePlay" class="play-btn-main">
             <el-icon :size="36" v-if="playerState.isPlaying"><VideoPause /></el-icon>
             <el-icon :size="36" v-else><VideoPlay /></el-icon>
           </el-button>
           <el-button text circle @click="nextSong" class="ctrl-btn-next">
-            <el-icon :size="32"><Right /></el-icon>
+            <el-icon :size="32"><CaretRight /></el-icon>
           </el-button>
         </div>
 
@@ -216,7 +216,7 @@
               </el-icon>
             </div>
             <el-button text circle size="small" @click="nextSong">
-              <el-icon :size="16"><Right /></el-icon>
+              <el-icon :size="16"><CaretRight /></el-icon>
             </el-button>
             <el-button text circle size="small" @click="showPlaylist = !showPlaylist">
               <el-icon :size="16"><List /></el-icon>
@@ -294,7 +294,7 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   Headset, HomeFilled, Star, StarFilled, Timer,
-  VideoPlay, VideoPause, Back, Right, Microphone, Mute, List, DeleteFilled, Search, Mic, Setting,
+  VideoPlay, VideoPause, CaretLeft, CaretRight, Microphone, Mute, List, DeleteFilled, Search, Mic, Setting,
   Operation, MagicStick, RefreshLeft, Close
 } from '@element-plus/icons-vue'
 import { usePlayer } from './composables/usePlayer.js'
