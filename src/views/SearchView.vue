@@ -216,7 +216,7 @@ async function fetchSongDetail(songId) {
   return { title, artist, cover, audioUrl, downloadUrl, lrc }
 }
 
-// 播放歌曲
+// 播放歌曲（同时缓存音频到数据库）
 async function playSong(index) {
   const song = results.value[index]
   if (!song) return
@@ -225,21 +225,46 @@ async function playSong(index) {
     const detail = await fetchSongDetail(song.id)
     if (!detail.audioUrl) throw new Error('未获取到播放地址')
 
+    // 下载音频并缓存到数据库
+    let audioBlob = null
+    try {
+      const audioResp = await proxyFetch(detail.audioUrl)
+      audioBlob = await audioResp.blob()
+    } catch (e) {
+      console.warn('缓存音频失败:', e.message)
+    }
+
     const playerSongs = results.value.map(s => ({
       id: `online_${s.id}`,
       title: s.title,
       artist: s.artist,
       audioUrl: '',
+      audioBlob: null,
       cover: '',
       lrc: '',
       duration: '--:--'
     }))
 
     playerSongs[index].audioUrl = detail.audioUrl
+    playerSongs[index].audioBlob = audioBlob
     playerSongs[index].title = detail.title || song.title
     playerSongs[index].artist = detail.artist || song.artist
     playerSongs[index].cover = detail.cover
     playerSongs[index].lrc = detail.lrc || ''
+
+    // 保存到数据库
+    await addSong({
+      title: detail.title || song.title,
+      artist: detail.artist || song.artist,
+      album: '',
+      duration: '',
+      cover: detail.cover,
+      audioUrl: detail.audioUrl,
+      downloadUrl: detail.downloadUrl || '',
+      audioBlob,
+      coverBlob: null,
+      lrc: detail.lrc || ''
+    })
 
     setSongs(playerSongs)
     playerPlaySong(index)
