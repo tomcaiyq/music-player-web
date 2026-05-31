@@ -157,7 +157,9 @@
                 <span class="item-sep">-</span>
                 <span class="item-artist">{{ song.artist || '未知歌手' }}</span>
               </div>
-              <span class="item-dur">{{ song.duration || '--:--' }}</span>
+              <el-button text size="small" @click.stop="removeFromPlaylist(idx)" class="item-remove">
+                <el-icon :size="14"><Close /></el-icon>
+              </el-button>
             </div>
             <el-empty v-if="playerState.songs.length === 0" description="暂无歌曲" :image-size="48" />
           </div>
@@ -227,9 +229,6 @@
           <div class="playlist-popup is-mobile" @click.stop>
             <div class="popup-header">
               <span>播放列表 ({{ playerState.songs.length }})</span>
-              <el-button text size="small" @click="clearAll">
-                <el-icon><DeleteFilled /></el-icon> 清空
-              </el-button>
             </div>
             <div class="popup-list">
               <div v-for="(song, idx) in playerState.songs" :key="song.id || idx" :class="{ active: idx === playerState.currentIndex }" class="popup-item" @click="playAt(idx)">
@@ -296,7 +295,7 @@ import { useRoute } from 'vue-router'
 import {
   Headset, HomeFilled, Star, StarFilled, Timer,
   VideoPlay, VideoPause, Back, Right, Microphone, Mute, List, DeleteFilled, Search, Mic, Setting,
-  Operation, MagicStick, RefreshLeft
+  Operation, MagicStick, RefreshLeft, Close
 } from '@element-plus/icons-vue'
 import { usePlayer } from './composables/usePlayer.js'
 import { useMobile } from './composables/useMobile.js'
@@ -485,6 +484,32 @@ function onSeek() {
   player.currentTime = seekPos.value
   currentPos.value = seekPos.value
   seeking.value = false
+}
+
+function removeFromPlaylist(idx) {
+  if (rawState.songs.length === 0) return
+  // 如果移除的是当前播放的歌曲
+  if (idx === rawState.currentIndex) {
+    rawState.songs.splice(idx, 1)
+    if (rawState.songs.length === 0) {
+      player.pause()
+      player.src = ''
+      rawState.currentSong = null
+      rawState.currentIndex = -1
+    } else {
+      const newIdx = idx >= rawState.songs.length ? 0 : idx
+      rawState.currentIndex = newIdx
+      rawState.currentSong = rawState.songs[newIdx]
+      player.src = getAudioSrc(rawState.songs[newIdx])
+      player.play()
+    }
+  } else {
+    rawState.songs.splice(idx, 1)
+    // 调整当前播放索引
+    if (idx < rawState.currentIndex) {
+      rawState.currentIndex--
+    }
+  }
 }
 
 function clearAll() {
@@ -780,7 +805,8 @@ defineExpose({ playSong, togglePlay })
 .item-name { font-size: 13px; color: var(--ncm-text-inverse); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .item-sep { color: var(--ncm-text-inverse-sub); font-size: 12px; }
 .item-artist { font-size: 12px; color: var(--ncm-text-inverse-sub); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.item-dur { font-size: 11px; color: var(--ncm-text-inverse-sub); margin-left: 12px; flex-shrink: 0; }
+.item-remove { color: var(--ncm-text-inverse-sub) !important; padding: 4px !important; flex-shrink: 0; opacity: 0.6; }
+.item-remove:hover { color: var(--ncm-text-inverse) !important; opacity: 1; }
 
 /* 服务器配置 */
 .server-config { padding-bottom: 16px; border-top: 1px solid var(--ncm-border); margin-top: 4px; }

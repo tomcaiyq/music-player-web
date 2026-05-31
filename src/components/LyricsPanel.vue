@@ -664,14 +664,7 @@ function close() {
   .lyrics-container { flex-direction: column; gap: 16px; padding: 20px 0 120px; }
 
   .desktop-layout { display: none; }
-  .mobile-layout {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding-top: 60vh;
-    transform: translateY(-40%);
-  }
+  .mobile-layout { display: flex; flex-direction: column; }
 
   .top-song-info {
     top: 16px;
@@ -686,25 +679,18 @@ function close() {
   }
 
   .disc-large {
-    width: min(60vh, 320px);
-    height: min(60vh, 320px);
-  }
-
-  .mobile-layout .cover-view {
-    justify-content: center;
-    padding-right: 0;
+    width: min(70vh, 380px);
+    height: min(70vh, 380px);
   }
 
   .lyrics-view {
     cursor: pointer;
-    justify-content: center;
   }
 
   .lyrics-scroll {
     width: 100%;
     height: 45vh;
     padding: 80px 0;
-    text-align: center;
   }
 
   .lyrics-line { font-size: clamp(13px, 3vw, 16px); }
