@@ -421,7 +421,6 @@ function close() {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  padding-left: 40px;
   width: 100%;
   min-width: 0;
 }
