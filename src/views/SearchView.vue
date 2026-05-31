@@ -289,44 +289,157 @@ async function saveSong(index) {
 </script>
 
 <style scoped>
-.search-view { padding: 20px; height: 100%; }
-.search-panel { background: var(--ncm-bg-card); border-radius: 8px; box-shadow: var(--ncm-shadow); overflow: hidden; transition: background 0.3s; }
-.panel-header { display: flex; align-items: baseline; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--ncm-border); }
-.panel-header h2 { font-size: 18px; font-weight: 600; color: var(--ncm-text-primary); margin: 0; }
-.result-count { font-size: 12px; color: var(--ncm-text-tertiary); }
+.search-view {
+  padding: 20px;
+  height: 100%;
+}
 
-.song-table { min-height: 200px; }
-.table-header { display: flex; align-items: center; padding: 10px 20px; background: var(--ncm-bg-input); border-bottom: 1px solid var(--ncm-border); font-size: 12px; color: var(--ncm-text-tertiary); font-weight: 500; }
-.table-row { display: flex; align-items: center; padding: 10px 20px; border-bottom: 1px solid var(--ncm-border-light); cursor: pointer; transition: background 0.12s; }
-.table-row:hover { background: var(--ncm-bg-hover); }
+.search-panel {
+  background: var(--ncm-bg-card);
+  border-radius: var(--ncm-radius-lg);
+  box-shadow: var(--ncm-shadow);
+  overflow: hidden;
+  transition: var(--ncm-transition);
+  border: 1px solid var(--ncm-border);
+}
 
-.col-index { width: 40px; font-size: 13px; color: var(--ncm-text-placeholder); flex-shrink: 0; text-align: center; }
-.col-title { flex: 1; min-width: 0; padding-right: 16px; }
-.song-name { font-size: 13px; color: var(--ncm-text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
-.col-artist { width: 120px; font-size: 13px; color: var(--ncm-text-secondary); flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.panel-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--ncm-border);
+}
 
-.col-actions { width: 80px; display: flex; gap: 2px; flex-shrink: 0; opacity: 0; transition: opacity 0.15s; }
-.table-row:hover .col-actions { opacity: 1; }
-.action-btn { color: var(--ncm-text-tertiary) !important; padding: 4px !important; }
-.action-btn:hover { color: var(--ncm-primary) !important; }
+.panel-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ncm-text-primary);
+  margin: 0;
+}
 
-.empty-state { padding: 60px 20px; }
+.result-count {
+  font-size: 12px;
+  color: var(--ncm-text-tertiary);
+}
+
+.song-table {
+  min-height: 200px;
+}
+
+.table-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--ncm-border);
+  font-size: 12px;
+  color: var(--ncm-text-tertiary);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.table-row {
+  display: flex;
+  align-items: center;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--ncm-border-light);
+  cursor: pointer;
+  transition: var(--ncm-transition-fast);
+}
+
+.table-row:hover {
+  background: var(--ncm-bg-hover);
+}
+
+.col-index {
+  width: 40px;
+  font-size: 13px;
+  color: var(--ncm-text-placeholder);
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.col-title {
+  flex: 1;
+  min-width: 0;
+  padding-right: 16px;
+}
+
+.song-name {
+  font-size: 13px;
+  color: var(--ncm-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  font-weight: 500;
+}
+
+.col-artist {
+  width: 120px;
+  font-size: 13px;
+  color: var(--ncm-text-secondary);
+  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.col-actions {
+  width: 80px;
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.table-row:hover .col-actions {
+  opacity: 1;
+}
+
+.action-btn {
+  color: var(--ncm-text-tertiary) !important;
+  padding: 6px !important;
+  transition: var(--ncm-transition-fast);
+}
+
+.action-btn:hover {
+  color: var(--ncm-primary) !important;
+}
+
+.empty-state {
+  padding: 80px 20px;
+}
 
 /* 搜索框 */
-.search-bar { display: flex; align-items: center; gap: 12px; padding: 20px; border-bottom: 1px solid var(--ncm-border); }
-.search-input { flex: 1; }
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--ncm-border);
+  background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%);
+}
+
+.search-input {
+  flex: 1;
+}
 
 /* 移动端 */
 @media (max-width: 768px) {
   .search-view { padding: 0; }
   .search-panel { border-radius: 0; box-shadow: none; }
+
   .search-bar {
     display: flex;
     align-items: center;
     padding: 12px 16px;
-    gap: 8px;
+    gap: 10px;
     flex-wrap: wrap;
   }
+
   .search-bar .el-button { order: 3; }
 
   .table-row.is-mobile {
@@ -336,7 +449,10 @@ async function saveSong(index) {
     gap: 10px;
     cursor: pointer;
   }
-  .table-row.is-mobile:active { background: var(--ncm-bg-hover); }
+
+  .table-row.is-mobile:active {
+    background: var(--ncm-bg-hover);
+  }
 
   .table-row.is-mobile .col-index {
     width: 28px;
@@ -369,7 +485,13 @@ async function saveSong(index) {
     gap: 0;
     flex-shrink: 0;
   }
-  .col-actions.mobile-visible .action-btn { padding: 8px !important; }
-  .col-actions.mobile-visible .action-btn:active { opacity: 0.6; }
+
+  .col-actions.mobile-visible .action-btn {
+    padding: 8px !important;
+  }
+
+  .col-actions.mobile-visible .action-btn:active {
+    opacity: 0.6;
+  }
 }
 </style>

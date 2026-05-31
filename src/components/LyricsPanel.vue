@@ -275,13 +275,17 @@ function close() {
 <style scoped>
 .lyrics-panel {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 2000;
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(0, 0, 0, 0.92);
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn 0.4s ease;
+  backdrop-filter: blur(20px);
 }
 
 @keyframes fadeIn {
@@ -295,42 +299,44 @@ function close() {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 60px;
+  gap: 80px;
   position: relative;
   overflow: hidden;
-  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease;
 }
 
 .lyrics-container.lyrics-enter {
-  animation: lyricsEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: lyricsEnter 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes lyricsEnter {
-  from {
-    transform: scale(0.1);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+  from { transform: scale(0.1); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 
 /* 背景模糊封面 */
 .lyrics-bg {
   position: absolute;
-  top: -20%; left: -20%;
-  width: 140%; height: 140%;
+  top: -30%;
+  left: -30%;
+  width: 160%;
+  height: 160%;
   background-size: cover;
   background-position: center;
-  filter: blur(40px) brightness(0.4);
+  filter: blur(60px) brightness(0.3) saturate(1.2);
   z-index: -1;
+  animation: bgPulse 8s ease-in-out infinite alternate;
 }
 
-/* 顶部歌曲信息（歌词模式） */
+@keyframes bgPulse {
+  from { transform: scale(1); filter: blur(60px) brightness(0.3) saturate(1.2); }
+  to { transform: scale(1.1); filter: blur(80px) brightness(0.25) saturate(1.3); }
+}
+
+/* 顶部歌曲信息 */
 .top-song-info {
   position: absolute;
-  top: 24px;
+  top: 28px;
   left: 50%;
   transform: translateX(-50%);
   text-align: center;
@@ -341,12 +347,13 @@ function close() {
   font-size: 18px;
   font-weight: 600;
   color: #fff;
-  margin: 0 0 4px;
+  margin: 0 0 6px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .top-song-info p {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.5);
   margin: 0;
 }
 
@@ -358,7 +365,7 @@ function close() {
   justify-items: center;
   flex: 1;
   width: 100%;
-  padding: 0 0 80px;
+  padding: 0 0 100px;
 }
 
 /* 移动端布局 */
@@ -373,7 +380,7 @@ function close() {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding-right: 40px;
+  padding-right: 60px;
   width: 100%;
 }
 
@@ -381,12 +388,21 @@ function close() {
   width: min(45vh, 320px);
   height: min(45vh, 320px);
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 50%, #333 0%, #111 100%);
+  background: radial-gradient(circle at 50% 50%, #2a2a2a 0%, #0a0a0a 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 60px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.6), 0 0 80px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(255, 255, 255, 0.05);
   animation: none;
+  position: relative;
+}
+
+.disc-large::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 0%, rgba(255, 255, 255, 0.03) 50%, transparent 100%);
 }
 
 .disc-large.spinning {
@@ -399,15 +415,16 @@ function close() {
 }
 
 .disc-cover-large {
-  width: 62%;
-  height: 62%;
+  width: 60%;
+  height: 60%;
   border-radius: 50%;
-  background: linear-gradient(135deg, #555 0%, #333 100%);
+  background: linear-gradient(135deg, #3a3a3a 0%, #1a1a1a 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #888;
+  color: #666;
   overflow: hidden;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 .disc-cover-large img {
@@ -433,14 +450,6 @@ function close() {
   overflow-y: auto;
   mask-image: linear-gradient(transparent 0%, #000 15%, #000 85%, transparent 100%);
   -webkit-mask-image: linear-gradient(transparent 0%, #000 15%, #000 85%, transparent 100%);
-  padding: 120px 0;
-}
-
-.lyrics-scroll {
-  height: 100%;
-  overflow-y: auto;
-  mask-image: linear-gradient(transparent 0%, #000 15%, #000 85%, transparent 100%);
-  -webkit-mask-image: linear-gradient(transparent 0%, #000 15%, #000 85%, transparent 100%);
   padding: 160px 0;
 }
 
@@ -448,57 +457,59 @@ function close() {
 
 .lyrics-line {
   font-size: clamp(12px, 2vw, 15px);
-  color: rgba(255, 255, 255, 0.3);
-  line-height: 2.2;
+  color: rgba(255, 255, 255, 0.25);
+  line-height: 2.4;
   text-align: center;
-  transition: all 0.4s ease;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
   transform: scale(0.95);
 }
 
 .lyrics-line:hover {
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .lyrics-line.active {
-  font-size: clamp(15px, 2.5vw, 20px);
-  font-weight: 700;
+  font-size: clamp(16px, 2.8vw, 22px);
+  font-weight: 600;
   color: #fff;
   transform: scale(1);
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  text-shadow: 0 0 30px rgba(255, 255, 255, 0.4);
 }
 
 .lyrics-line.near {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.5);
   transform: scale(0.98);
 }
 
 .lyrics-empty {
   text-align: center;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.2);
   padding-top: 160px;
   font-size: 15px;
 }
 
 .close-btn {
   position: absolute;
-  top: 24px;
-  right: 24px;
-  width: 40px;
-  height: 40px;
+  top: 28px;
+  right: 28px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: rgba(255, 255, 255, 0.6);
-  transition: all 0.2s;
+  color: rgba(255, 255, 255, 0.5);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
 }
 
 .close-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
   color: #fff;
+  transform: scale(1.05);
 }
 
 /* 底部歌曲信息 */
@@ -506,7 +517,7 @@ function close() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .bottom-song-meta {
@@ -523,13 +534,13 @@ function close() {
 
 .bottom-song-artist {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .fav-btn {
   cursor: pointer;
   padding: 8px;
-  transition: transform 0.2s;
+  transition: all 0.2s ease;
 }
 
 .fav-btn:active {
@@ -539,21 +550,21 @@ function close() {
 /* 底部控制栏 */
 .lyrics-controls {
   position: absolute;
-  bottom: 0px;
+  bottom: 0;
   left: 0;
   right: 0;
-  padding: 16px 40px 24px;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.6));
+  padding: 20px 40px 28px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
 /* 进度条 */
 .progress-bar-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .progress-bar {
@@ -569,7 +580,7 @@ function close() {
   left: 0;
   right: 0;
   height: 3px;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 2px;
   transform: translateY(-50%);
 }
@@ -579,10 +590,11 @@ function close() {
   top: 50%;
   left: 0;
   height: 3px;
-  background: rgba(255, 255, 255, 0.4);
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.6));
   border-radius: 2px;
   transform: translateY(-50%);
   transition: width 0.1s linear;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
 }
 
 .progress-dot {
@@ -593,8 +605,8 @@ function close() {
   background: #fff;
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  box-shadow: 0 0 6px rgba(0, 0, 0, 0.3);
-  transition: left 0.1s linear;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  transition: left 0.1s linear, opacity 0.2s;
   opacity: 0;
 }
 
@@ -610,7 +622,7 @@ function close() {
 .time-current,
 .time-total {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.4);
   font-variant-numeric: tabular-nums;
 }
 
@@ -618,7 +630,7 @@ function close() {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 24px;
+  gap: 28px;
 }
 
 .ctrl-btn {
@@ -629,21 +641,26 @@ function close() {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: rgba(255, 255, 255, 0.8);
-  transition: all 0.2s;
+  color: rgba(255, 255, 255, 0.7);
+  transition: all 0.3s ease;
 }
 
 .ctrl-btn:hover {
   color: #fff;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .ctrl-btn:active {
   transform: scale(0.95);
 }
 
+.ctrl-btn.play-btn {
+  width: 52px;
+  height: 52px;
+}
+
 .ctrl-btn.play-btn:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .play-mode-btn {
@@ -656,94 +673,68 @@ function close() {
   right: 2px;
   font-size: 10px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 @media (max-width: 768px) {
-  .lyrics-container { flex-direction: column; gap: 16px; padding: 20px 0 120px; }
+  .lyrics-container {
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px 0 140px;
+  }
 
   .desktop-layout { display: none; }
   .mobile-layout { display: flex; flex-direction: column; }
 
-  .top-song-info {
-    top: 16px;
-  }
-
-  .top-song-info h3 {
-    font-size: clamp(14px, 3.5vw, 18px);
-  }
-
-  .top-song-info p {
-    font-size: clamp(11px, 2.5vw, 13px);
-  }
+  .top-song-info { top: 16px; }
+  .top-song-info h3 { font-size: clamp(14px, 3.5vw, 18px); }
+  .top-song-info p { font-size: clamp(11px, 2.5vw, 13px); }
 
   .disc-large {
-    width: min(70vh, 380px);
-    height: min(70vh, 380px);
+    width: min(60vh, 320px);
+    height: min(60vh, 320px);
+  }
+
+  .mobile-layout .cover-view {
+    justify-content: center;
+    padding-right: 0;
   }
 
   .lyrics-view {
     cursor: pointer;
+    justify-content: center;
   }
 
   .lyrics-scroll {
     width: 100%;
     height: 45vh;
     padding: 80px 0;
+    text-align: center;
   }
 
   .lyrics-line { font-size: clamp(13px, 3vw, 16px); }
   .lyrics-line.active { font-size: clamp(16px, 4vw, 22px); }
   .lyrics-line.near { font-size: clamp(14px, 3.5vw, 18px); }
+
   .close-btn { top: 12px; right: 12px; width: 36px; height: 36px; }
 
-  .bottom-song-info {
-    margin-bottom: 2px;
-  }
-
-  .bottom-song-title {
-    font-size: 14px;
-  }
-
-  .bottom-song-artist {
-    font-size: 12px;
-  }
+  .bottom-song-info { margin-bottom: 2px; }
+  .bottom-song-title { font-size: 14px; }
+  .bottom-song-artist { font-size: 11px; }
 
   .lyrics-controls {
-    padding: 12px 16px 20px;
-    gap: 20px;
+    padding: 14px 18px 22px;
+    gap: 16px;
   }
 
-  .bottom-song-title {
-    font-size: 14px;
-  }
-
-  .bottom-song-artist {
-    font-size: 11px;
-  }
-
-  .progress-bar-wrapper {
-    gap: 4px;
-  }
-
-  .progress-bar {
-    padding: 6px 0;
-  }
-
-  .progress-dot {
-    width: 10px;
-    height: 10px;
-    color: white;
-  }
-
-  .time-current,
-  .time-total {
-    font-size: 10px;
-  }
+  .progress-bar-wrapper { gap: 4px; }
+  .progress-bar { padding: 6px 0; }
+  .progress-dot { width: 10px; height: 10px; }
+  .time-current, .time-total { font-size: 10px; }
 
   .control-buttons {
-    gap: 32px;
-    padding: 10px;
+    gap: 28px;
+    padding: 8px;
   }
 
   .ctrl-btn {
