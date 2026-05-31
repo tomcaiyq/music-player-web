@@ -932,7 +932,7 @@ defineExpose({ playSong, togglePlay })
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 999;
+  z-index: 2999;
   background: rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(4px);
 }
@@ -950,7 +950,7 @@ defineExpose({ playSong, togglePlay })
   flex-direction: column;
   overflow: hidden;
   box-shadow: var(--ncm-shadow-lg);
-  z-index: 1000;
+  z-index: 3000;
 }
 
 .popup-header {
@@ -1164,7 +1164,7 @@ defineExpose({ playSong, togglePlay })
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(4px);
-  z-index: 1999;
+  z-index: 2999;
 }
 
 .playlist-popup.is-mobile {
@@ -1178,7 +1178,7 @@ defineExpose({ playSong, togglePlay })
   border: 1px solid var(--ncm-border);
   border-bottom: none;
   box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.4);
-  z-index: 2000;
+  z-index: 3000;
 }
 
 @media (max-width: 768px) {
