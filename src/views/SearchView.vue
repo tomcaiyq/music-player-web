@@ -1023,8 +1023,7 @@ async function saveSong(index) {
 
 .mobile-menu-drawer {
   position: fixed;
-  /* bottom = 整屏高度 - 可见区域高度 + safe-bottom，让抽屉贴可见区域底部并避开系统导航栏 */
-  bottom: calc(100vh - var(--app-height, 100vh) + var(--ncm-safe-bottom, 0px));
+  bottom: var(--ncm-safe-bottom, 0px);
   left: 0;
   right: 0;
   background: var(--ncm-bg-elevated);

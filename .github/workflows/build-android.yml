@@ -39,6 +39,16 @@ jobs:
       - name: Add Capacitor Android
         run: npx cap add android
 
+      - name: Opt out edge-to-edge (fix: 系统导航栏遮挡底部 tabbar)
+        run: |
+          STYLES=android/app/src/main/res/values/styles.xml
+          echo "=== 修改前 ==="
+          cat $STYLES
+          # 在 </style> 前插入 opt-out edge-to-edge 和让 WebView 不延伸到系统导航栏
+          sed -i 's|</style>|    <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>\n    <item name="android:windowDrawsSystemBarBackgrounds">false</item>\n</style>|' $STYLES
+          echo "=== 修改后 ==="
+          cat $STYLES
+
       - name: Sync to Android
         run: npx cap sync android
 

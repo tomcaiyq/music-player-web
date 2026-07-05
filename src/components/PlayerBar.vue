@@ -686,11 +686,10 @@ function handleOutsideClick(e) {
 
 /* ============ 移动端播放栏（单行 + 底部进度条） ============ */
 .player-bar.is-mobile {
-  /* fixed 定位脱离 .ncm-app 容器，直接贴可见区域底部（在 tabbar 之上） */
   position: fixed;
   left: 0;
   right: 0;
-  bottom: calc(100vh - var(--app-height, 100vh) + var(--ncm-safe-bottom, 0px) + var(--ncm-tabbar-height-mobile));
+  bottom: calc(var(--ncm-safe-bottom, 0px) + var(--ncm-tabbar-height-mobile));
   height: auto;
   padding: 8px 12px 16px;
   background: var(--ncm-bg-player);
@@ -1046,8 +1045,7 @@ function handleOutsideClick(e) {
 
 .mobile-playlist-drawer {
   position: fixed;
-  /* bottom = 整屏高度 - 可见区域高度 + safe-bottom，让抽屉贴可见区域底部并避开系统导航栏 */
-  bottom: calc(100vh - var(--app-height, 100vh) + var(--ncm-safe-bottom, 0px));
+  bottom: var(--ncm-safe-bottom, 0px);
   left: 0;
   right: 0;
   max-height: 75vh;

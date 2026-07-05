@@ -507,13 +507,12 @@ async function toggleFavoriteCurrent() {
 
 /* ===== 移动端底部 Tab Bar ===== */
 .mobile-tabbar {
-  /* fixed 定位脱离 .ncm-app 容器，直接贴可见区域底部
-     bottom = 整屏高度 - 可见区域高度 + safe-bottom
-     这样 --app-height 和 --ncm-safe-bottom 的调整都直接生效 */
+  /* opt-out edge-to-edge 后 100vh = 可见区域高度，bottom:0 直接贴可见区域底部
+     --ncm-safe-bottom 用于额外避开 home indicator（iPhone）/手势条 */
   position: fixed;
   left: 0;
   right: 0;
-  bottom: calc(100vh - var(--app-height, 100vh) + var(--ncm-safe-bottom, 0px));
+  bottom: var(--ncm-safe-bottom, 0px);
   height: var(--ncm-tabbar-height-mobile);
   background: rgba(12, 12, 15, 0.95);
   backdrop-filter: blur(20px);
