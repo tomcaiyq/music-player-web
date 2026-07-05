@@ -199,7 +199,14 @@ watch(() => props.visible, (v) => {
   if (v) {
     refreshInfo()
     const cur = collectCurrent()
-    form.appHeight = cur.appHeight
+    // 首次进入（没有任何覆盖值）时，自动用 window.innerHeight 填入并应用一次
+    if (cur.appHeight == null) {
+      const innerH = window.innerHeight
+      form.appHeight = innerH
+      setAppHeight(innerH)
+    } else {
+      form.appHeight = cur.appHeight
+    }
     form.safeTop = cur.safeTop
     form.safeBottom = cur.safeBottom
   }
