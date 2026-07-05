@@ -21,3 +21,7 @@ logs/
 # Optional npm cache
 .npm
 
+# Tauri build output
+src-tauri/target/
+src-tauri/gen/
+

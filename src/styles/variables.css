@@ -87,7 +87,8 @@
   --ncm-player-bar-height: 80px;
   --ncm-player-bar-height-mobile: 72px;
   --ncm-tabbar-height-mobile: 56px;
-  /* iPhone 安全区 */
+  /* 安全区：原生平台由 initSafeArea() 动态注入，Web 端用 env() */
+  --ncm-safe-top: env(safe-area-inset-top, 0px);
   --ncm-safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 

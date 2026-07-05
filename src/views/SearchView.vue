@@ -156,7 +156,7 @@ import { usePlayer } from '../composables/usePlayer.js'
 import { useMobile } from '../composables/useMobile.js'
 import { addSong } from '../db.js'
 import { ElMessage } from 'element-plus'
-import { SONG_SEARCH_API, SEARCH_API_ID, SEARCH_API_KEY, MP3_BASE_URL, DEFAULT_COVER, proxyUrl } from '../config.js'
+import { SONG_SEARCH_API, SEARCH_API_ID, SEARCH_API_KEY, MP3_BASE_URL, DEFAULT_COVER, proxyUrl, unifiedFetch } from '../config.js'
 
 const { isMobile } = useMobile()
 const route = useRoute()
@@ -212,7 +212,7 @@ function buildMp3Url(filePath) {
 
 // 从歌曲页面抓取 $song_data 获取 MP3 地址 + 歌词页 URL（需走 CORS 代理）
 async function fetchSongMetaFromPage(pageUrl) {
-  const html = await fetch(proxyUrl(pageUrl)).then(r => r.text())
+  const html = await unifiedFetch(proxyUrl(pageUrl)).then(r => r.text())
 
   // MP3 地址
   let audioUrl = ''
@@ -239,7 +239,7 @@ async function fetchSongMetaFromPage(pageUrl) {
 async function fetchLyricsFromPage(lyricUrl) {
   if (!lyricUrl) return ''
   try {
-    const html = await fetch(proxyUrl(lyricUrl)).then(r => r.text())
+    const html = await unifiedFetch(proxyUrl(lyricUrl)).then(r => r.text())
     const match = html.match(/id=["']lrc["'][^>]*>([\s\S]*?)<\/div>/i)
     if (!match) return ''
     return match[1]
@@ -260,7 +260,7 @@ async function doSearch() {
   searched.value = true
   try {
     const url = `${SONG_SEARCH_API}?id=${SEARCH_API_ID}&key=${SEARCH_API_KEY}&type=3&words=${encodeURIComponent(query.value)}`
-    const data = await fetch(url).then(r => r.json())
+    const data = await unifiedFetch(url).then(r => r.json())
 
     if (data.code === 200 && Array.isArray(data.songs)) {
       results.value = data.songs
@@ -318,7 +318,7 @@ async function playSong(index) {
     song.audioUrl = audioUrl
 
     try {
-      const testResp = await fetch(proxyUrl(audioUrl), { method: 'HEAD' })
+      const testResp = await unifiedFetch(proxyUrl(audioUrl), { method: 'HEAD' })
       if (!testResp.ok) {
         song._unavailable = true
         const nextIndex = findNextAvailable(index + 1)
@@ -336,7 +336,7 @@ async function playSong(index) {
 
     let audioBlob = null
     try {
-      const audioResp = await fetch(proxyUrl(audioUrl))
+      const audioResp = await unifiedFetch(proxyUrl(audioUrl))
       if (!audioResp.ok) {
         song._unavailable = true
         const nextIndex = findNextAvailable(index + 1)
@@ -432,7 +432,7 @@ async function saveSong(index) {
 
     let audioBlob = null
     try {
-      const audioResp = await fetch(proxyUrl(audioUrl))
+      const audioResp = await unifiedFetch(proxyUrl(audioUrl))
       audioBlob = await audioResp.blob()
     } catch (e) {
       console.warn('下载音频失败:', e.message)

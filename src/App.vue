@@ -244,6 +244,14 @@ async function toggleFavoriteCurrent() {
   z-index: 10;
 }
 
+/* 移动端/原生平台：顶部加状态栏安全区 */
+@media (max-width: 768px) {
+  .ncm-header {
+    padding-top: var(--ncm-safe-top);
+    height: calc(var(--ncm-header-height) + var(--ncm-safe-top));
+  }
+}
+
 .brand {
   display: flex;
   align-items: center;

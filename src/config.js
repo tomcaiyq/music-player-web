@@ -26,8 +26,9 @@ export function setCorsProxy(url) {
  *
  * 用于区分：
  *  - Web 端：走 /api/yymp3、/api/ting123 同源代理（dev: vite proxy，prod: server.js）
- *  - 原生端：启用 CapacitorHttp 插件后，fetch 直接发原始 URL，
+ *  - Capacitor 原生端：启用 CapacitorHttp 插件后，fetch 直接发原始 URL，
  *            走原生网络层绕过 WebView CORS 限制，无需任何代理
+ *  - Tauri 桌面端：用 @tauri-apps/plugin-http 的 fetch 绕过 CORS
  */
 export function isNativePlatform() {
   return typeof window !== 'undefined'
@@ -37,12 +38,58 @@ export function isNativePlatform() {
 }
 
 /**
+ * 是否运行在 Tauri 桌面端
+ * Tauri 会在 window 上注入 __TAURI_INTERNALS__ 对象
+ */
+export function isTauriPlatform() {
+  return typeof window !== 'undefined'
+    && '__TAURI_INTERNALS__' in window
+}
+
+/**
+ * 统一的 fetch 包装：
+ *  - Tauri 环境：用 @tauri-apps/plugin-http 的 fetch（走 Rust 原生网络层，绕过 CORS）
+ *  - 其他环境（Web / Capacitor）：用原生 fetch
+ *  - Capacitor 原生平台已 patch fetch，所以也走原生 fetch
+ */
+let _tauriFetch = null
+async function getTauriFetch() {
+  if (_tauriFetch !== null) return _tauriFetch
+  if (!isTauriPlatform()) {
+    _tauriFetch = false
+    return false
+  }
+  try {
+    const mod = await import('@tauri-apps/plugin-http')
+    _tauriFetch = mod.fetch
+    return _tauriFetch
+  } catch (e) {
+    console.warn('Failed to load @tauri-apps/plugin-http:', e)
+    _tauriFetch = false
+    return false
+  }
+}
+
+/**
+ * 统一 fetch 包装。签名与原生 fetch 一致。
+ *  - Tauri 环境：走 plugin-http
+ *  - 其他：原生 fetch
+ */
+export async function unifiedFetch(url, options = {}) {
+  if (isTauriPlatform()) {
+    const tFetch = await getTauriFetch()
+    if (tFetch) return tFetch(url, options)
+  }
+  return fetch(url, options)
+}
+
+/**
  * 将外部 URL 转为可 fetch 的 URL
  *  - Web 平台：走同源路径 /api/yymp3、/api/ting123（dev: vite proxy，prod: server.js）
- *  - 原生平台：直接返回原始 URL（CapacitorHttp 插件已 patch fetch，绕过 CORS）
+ *  - 原生平台（Capacitor/Tauri）：直接返回原始 URL（fetch 已被 patch 或用 plugin-http）
  */
 export function proxyUrl(url) {
-  if (isNativePlatform()) {
+  if (isNativePlatform() || isTauriPlatform()) {
     return url
   }
   if (url.startsWith('https://www.yymp3.com/')) {
@@ -55,6 +102,49 @@ export function proxyUrl(url) {
 }
 
 export const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1'
+
+/**
+ * 初始化原生平台安全区（状态栏 + 底部导航栏）
+ *
+ * 安卓 WebView 不支持 env(safe-area-inset-*)，需通过插件 / viewport 动态获取：
+ *  - 顶部：用 @capacitor/status-bar 的 getInfo() 获取状态栏高度
+ *  - 底部：监听 visualViewport.resize，计算 window.innerHeight - visualViewport.height
+ *
+ * 把实际像素值写入 :root 的 CSS 变量：
+ *  - --ncm-safe-top
+ *  - --ncm-safe-bottom
+ *
+ * Web/Tauri 端调用为 no-op，保留 env() 默认值。
+ */
+export async function initSafeArea() {
+  if (!isNativePlatform()) return
+
+  // 顶部状态栏
+  try {
+    const { StatusBar, Style } = await import('@capacitor/status-bar')
+    await StatusBar.setStyle({ style: Style.Dark })
+    const info = await StatusBar.getInfo()
+    if (info && typeof info.height === 'number') {
+      // height 单位为像素（已转换为 CSS px）
+      document.documentElement.style.setProperty('--ncm-safe-top', info.height + 'px')
+    }
+  } catch (e) {
+    console.warn('StatusBar plugin unavailable:', e)
+  }
+
+  // 底部导航栏：通过 visualViewport 推算
+  // 安卓底部地址栏/导航栏会导致 visualViewport.height < window.innerHeight
+  function updateBottomInset() {
+    const vv = window.visualViewport
+    if (!vv) return
+    const inset = Math.max(0, window.innerHeight - vv.height)
+    document.documentElement.style.setProperty('--ncm-safe-bottom', inset + 'px')
+  }
+  updateBottomInset()
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', updateBottomInset)
+  }
+}
 
 // 搜歌 API 配置 (cn.apihz.cn)
 export const SONG_SEARCH_API = 'https://cn.apihz.cn/api/fun/souge.php'
