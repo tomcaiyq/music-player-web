@@ -1,56 +1,99 @@
-/* ===== 深色主题（默认） ===== */
+/* ============================================================
+   云音乐 · Design Tokens
+   深墨黑画布 / 单一暖红 / 克制层级 / 有呼吸的动效
+   ============================================================ */
+
 :root {
-  /* 主色调 */
-  --ncm-primary: #C20C0C;
-  --ncm-primary-hover: #E13E3E;
-  --ncm-primary-glow: rgba(194, 12, 12, 0.3);
+  /* —— 主色（暖红，唯一强调） —— */
+  --ncm-primary: #E84045;
+  --ncm-primary-hover: #FF5256;
+  --ncm-primary-soft: rgba(232, 64, 69, 0.14);
+  --ncm-primary-glow: rgba(232, 64, 69, 0.28);
 
-  /* 背景色层次 */
-  --ncm-bg-header: linear-gradient(135deg, #1a1a1a 0%, #121212 100%);
-  --ncm-bg-sidebar: #141414;
-  --ncm-bg-main: #0d0d0d;
-  --ncm-bg-card: #1a1a1a;
-  --ncm-bg-input: #242424;
-  --ncm-bg-hover: #2a2a2a;
-  --ncm-bg-active: rgba(194, 12, 12, 0.15);
-  --ncm-bg-player: #1a1a1a;
-  --ncm-bg-playlist: #1e1e1e;
+  /* —— 背景层次（由深到浅） —— */
+  --ncm-bg-app: #08080a;
+  --ncm-bg-sidebar: #0c0c0f;
+  --ncm-bg-main: #0a0a0c;
+  --ncm-bg-elevated: #131316;
+  --ncm-bg-input: #1a1a1f;
+  --ncm-bg-hover: #1c1c22;
+  --ncm-bg-active: rgba(232, 64, 69, 0.12);
+  --ncm-bg-player: rgba(12, 12, 15, 0.92);
+  --ncm-bg-overlay: rgba(8, 8, 10, 0.85);
 
-  /* 文字颜色层次 */
-  --ncm-text-primary: #f0f0f0;
-  --ncm-text-secondary: #999;
-  --ncm-text-tertiary: #666;
-  --ncm-text-placeholder: #444;
-  --ncm-text-inverse: #fff;
-  --ncm-text-inverse-sub: #888;
+  /* —— 文字层次 —— */
+  --ncm-text-primary: #f5f5f7;
+  --ncm-text-secondary: #a1a1aa;
+  --ncm-text-tertiary: #6b6b75;
+  --ncm-text-quaternary: #44444c;
+  --ncm-text-inverse: #ffffff;
 
-  /* 边框 */
+  /* —— 边框（极淡） —— */
   --ncm-border: rgba(255, 255, 255, 0.06);
   --ncm-border-light: rgba(255, 255, 255, 0.03);
+  --ncm-border-strong: rgba(255, 255, 255, 0.1);
 
-  /* 滚动条 */
-  --ncm-scroll-thumb: #333;
-  --ncm-scroll-thumb-hover: #444;
+  /* —— 滚动条 —— */
+  --ncm-scroll-thumb: rgba(255, 255, 255, 0.08);
+  --ncm-scroll-thumb-hover: rgba(255, 255, 255, 0.16);
 
-  /* 阴影 */
-  --ncm-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
-  --ncm-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
-  --ncm-shadow-glow: 0 0 20px rgba(194, 12, 12, 0.15);
+  /* —— 阴影（克制） —— */
+  --ncm-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --ncm-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  --ncm-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.5);
+  --ncm-shadow-glow: 0 0 32px rgba(232, 64, 69, 0.25);
 
-  /* 圆角 */
+  /* —— 圆角 —— */
+  --ncm-radius-xs: 4px;
   --ncm-radius-sm: 6px;
   --ncm-radius-md: 10px;
-  --ncm-radius-lg: 16px;
-  --ncm-radius-xl: 24px;
+  --ncm-radius-lg: 14px;
+  --ncm-radius-xl: 20px;
+  --ncm-radius-full: 999px;
 
-  /* 过渡 */
-  --ncm-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --ncm-transition-fast: all 0.15s ease;
+  /* —— 间距 —— */
+  --ncm-space-1: 4px;
+  --ncm-space-2: 8px;
+  --ncm-space-3: 12px;
+  --ncm-space-4: 16px;
+  --ncm-space-5: 20px;
+  --ncm-space-6: 24px;
+  --ncm-space-8: 32px;
+  --ncm-space-10: 40px;
+  --ncm-space-12: 48px;
 
-  --player-bar-height: 72px;
+  /* —— 字号 —— */
+  --ncm-text-xs: 11px;
+  --ncm-text-sm: 12px;
+  --ncm-text-base: 13px;
+  --ncm-text-md: 14px;
+  --ncm-text-lg: 16px;
+  --ncm-text-xl: 18px;
+  --ncm-text-2xl: 22px;
+  --ncm-text-3xl: 28px;
+  --ncm-text-4xl: 36px;
+
+  /* —— 动效 —— */
+  --ncm-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ncm-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ncm-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ncm-transition: all 0.3s var(--ncm-ease);
+  --ncm-transition-fast: all 0.18s var(--ncm-ease);
+  --ncm-transition-slow: all 0.6s var(--ncm-ease-out);
+
+  /* —— 尺寸 —— */
+  --ncm-header-height: 56px;
+  --ncm-sidebar-width: 220px;
+  --ncm-player-bar-height: 80px;
+  --ncm-player-bar-height-mobile: 72px;
+  --ncm-tabbar-height-mobile: 56px;
+  /* iPhone 安全区 */
+  --ncm-safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* ===== 全局基础 ===== */
+/* ============================================================
+   基础重置
+   ============================================================ */
 * {
   margin: 0;
   padding: 0;
@@ -65,27 +108,36 @@ html, body {
 body {
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   font-weight: 400;
+  font-size: var(--ncm-text-base);
   color: var(--ncm-text-primary);
-  background: var(--ncm-bg-main);
+  background: var(--ncm-bg-app);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.005em;
 }
 
-::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--ncm-scroll-thumb); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: var(--ncm-scroll-thumb); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--ncm-scroll-thumb-hover); }
 
-/* ===== Element Plus 覆盖 ===== */
+button { font-family: inherit; }
+
+/* 数字等宽 */
+.tnum { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+
+/* ============================================================
+   Element Plus 覆写
+   ============================================================ */
 .el-menu {
   border-right: none !important;
   background-color: transparent !important;
 }
 
 .el-menu-item {
-  height: 40px !important;
-  line-height: 40px !important;
-  font-size: 13px !important;
+  height: 38px !important;
+  line-height: 38px !important;
+  font-size: var(--ncm-text-md) !important;
   color: var(--ncm-text-secondary) !important;
   margin: 2px 8px;
   border-radius: var(--ncm-radius-sm);
@@ -100,13 +152,16 @@ body {
 .el-menu-item.is-active {
   background: var(--ncm-bg-active) !important;
   color: var(--ncm-primary) !important;
+  font-weight: 500;
 }
 
-.el-card {
-  border: 1px solid var(--ncm-border);
-  border-radius: var(--ncm-radius-md);
-  background: var(--ncm-bg-card);
-  box-shadow: var(--ncm-shadow);
+.el-menu-item .el-icon {
+  font-size: 18px;
+}
+
+.el-button {
+  transition: var(--ncm-transition-fast);
+  border-radius: var(--ncm-radius-sm);
 }
 
 .el-button--primary {
@@ -114,72 +169,18 @@ body {
   --el-button-border-color: var(--ncm-primary);
   --el-button-hover-bg-color: var(--ncm-primary-hover);
   --el-button-hover-border-color: var(--ncm-primary-hover);
+  --el-button-active-bg-color: var(--ncm-primary);
+  --el-button-active-border-color: var(--ncm-primary);
+  font-weight: 500;
 }
 
 .el-button {
-  transition: var(--ncm-transition-fast);
-}
-
-.el-slider__bar {
-  background: var(--ncm-primary) !important;
-}
-
-.el-slider__button {
-  border-color: var(--ncm-primary) !important;
-  width: 12px !important;
-  height: 12px !important;
-}
-
-.el-progress__text { font-size: 12px !important; }
-
-.el-table {
-  --el-table-border-color: var(--ncm-border);
-  --el-table-bg-color: var(--ncm-bg-card);
-  --el-table-tr-bg-color: var(--ncm-bg-card);
-  --el-table-header-bg-color: var(--ncm-bg-input);
-  --el-table-row-hover-bg-color: var(--ncm-bg-hover);
-}
-
-.el-table th.el-table__cell {
-  background: var(--ncm-bg-input) !important;
-  color: var(--ncm-text-secondary);
-}
-
-.el-table td.el-table__cell {
-  color: var(--ncm-text-primary);
-}
-
-.el-input__wrapper {
-  background: var(--ncm-bg-input) !important;
-  box-shadow: 0 0 0 1px var(--ncm-border) inset !important;
-  border-radius: var(--ncm-radius-sm);
-  transition: var(--ncm-transition-fast);
-}
-
-.el-input__wrapper:hover,
-.el-input__wrapper.is-focus {
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1) inset !important;
-}
-
-.el-input__inner {
-  color: var(--ncm-text-primary) !important;
-}
-
-.el-input__inner::placeholder {
-  color: var(--ncm-text-placeholder) !important;
-}
-
-.el-input__prefix .el-icon {
-  color: var(--ncm-text-tertiary) !important;
-}
-
-.el-button {
-  --el-button-bg-color: var(--ncm-bg-input);
+  --el-button-bg-color: var(--ncm-bg-elevated);
   --el-button-border-color: var(--ncm-border);
   --el-button-text-color: var(--ncm-text-primary);
   --el-button-hover-bg-color: var(--ncm-bg-hover);
-  --el-button-hover-border-color: rgba(255, 255, 255, 0.1);
-  border-radius: var(--ncm-radius-sm);
+  --el-button-hover-border-color: var(--ncm-border-strong);
+  --el-button-hover-text-color: var(--ncm-text-primary);
 }
 
 .el-button.is-text {
@@ -187,10 +188,95 @@ body {
   border: none !important;
 }
 
+.el-slider__bar {
+  background: var(--ncm-primary) !important;
+}
+
+.el-slider__runway {
+  background: rgba(255, 255, 255, 0.08) !important;
+  height: 4px !important;
+}
+
+.el-slider__button {
+  border-color: var(--ncm-primary) !important;
+  width: 12px !important;
+  height: 12px !important;
+  background: #fff;
+}
+
+.el-slider__button-wrapper {
+  width: 24px !important;
+  height: 24px !important;
+  top: -10px !important;
+}
+
+.el-progress__text { font-size: var(--ncm-text-sm) !important; }
+
+.el-input__wrapper {
+  background: var(--ncm-bg-input) !important;
+  box-shadow: 0 0 0 1px var(--ncm-border) inset !important;
+  border-radius: var(--ncm-radius-sm);
+  transition: var(--ncm-transition-fast);
+  padding: 4px 12px !important;
+}
+
+.el-input__wrapper:hover {
+  box-shadow: 0 0 0 1px var(--ncm-border-strong) inset !important;
+}
+
+.el-input__wrapper.is-focus {
+  box-shadow: 0 0 0 1px var(--ncm-primary) inset, 0 0 0 4px var(--ncm-primary-soft) inset !important;
+}
+
+.el-input__inner {
+  color: var(--ncm-text-primary) !important;
+  font-size: var(--ncm-text-md) !important;
+}
+
+.el-input__inner::placeholder {
+  color: var(--ncm-text-tertiary) !important;
+}
+
+.el-input__prefix .el-icon {
+  color: var(--ncm-text-tertiary) !important;
+}
+
+.el-select {
+  --el-select-border-color-hover: var(--ncm-border-strong);
+  --el-select-input-focus-border-color: var(--ncm-primary);
+}
+
+.el-select .el-input__wrapper {
+  background: var(--ncm-bg-input) !important;
+  box-shadow: 0 0 0 1px var(--ncm-border) inset !important;
+}
+
+.el-select-dropdown {
+  background: var(--ncm-bg-elevated) !important;
+  border-color: var(--ncm-border) !important;
+  border-radius: var(--ncm-radius-md) !important;
+}
+
+.el-select-dropdown__item {
+  color: var(--ncm-text-secondary) !important;
+}
+
+.el-select-dropdown__item.hover,
+.el-select-dropdown__item:hover {
+  background: var(--ncm-bg-hover) !important;
+  color: var(--ncm-text-primary) !important;
+}
+
+.el-select-dropdown__item.selected {
+  color: var(--ncm-primary) !important;
+  font-weight: 500;
+}
+
 .el-dialog, .el-message-box {
-  background: var(--ncm-bg-card) !important;
+  background: var(--ncm-bg-elevated) !important;
   border-color: var(--ncm-border) !important;
   border-radius: var(--ncm-radius-lg) !important;
+  box-shadow: var(--ncm-shadow-lg);
 }
 
 .el-dialog__title, .el-message-box__title {
@@ -208,7 +294,7 @@ body {
 }
 
 .el-divider__text {
-  background: var(--ncm-bg-card) !important;
+  background: var(--ncm-bg-elevated) !important;
   color: var(--ncm-text-tertiary) !important;
 }
 
@@ -217,35 +303,80 @@ body {
 }
 
 .el-loading-mask {
-  background: rgba(0, 0, 0, 0.7) !important;
-  backdrop-filter: blur(4px);
+  background: rgba(8, 8, 10, 0.7) !important;
+  backdrop-filter: blur(8px);
 }
 
-.el-slider__runway {
-  background: #333 !important;
+.el-loading-spinner .path {
+  stroke: var(--ncm-primary);
 }
 
-/* 抽屉组件 */
 .el-drawer {
-  --el-drawer-bg-color: #0d0d0d;
+  --el-drawer-bg-color: var(--ncm-bg-elevated);
   --el-drawer-padding-primary: 0;
 }
 
-/* 消息提示 */
 .el-message {
   border-radius: var(--ncm-radius-md) !important;
-  background: var(--ncm-bg-card) !important;
+  background: var(--ncm-bg-elevated) !important;
+  border: 1px solid var(--ncm-border) !important;
+  color: var(--ncm-text-primary) !important;
+  backdrop-filter: blur(20px);
+}
+
+.el-message--success { --el-message-bg-color: var(--ncm-bg-elevated) !important; }
+.el-message--warning { --el-message-bg-color: var(--ncm-bg-elevated) !important; }
+.el-message--error { --el-message-bg-color: var(--ncm-bg-elevated) !important; }
+
+.el-popper {
+  background: var(--ncm-bg-elevated) !important;
+  border-color: var(--ncm-border) !important;
+  color: var(--ncm-text-primary) !important;
+}
+
+.el-popper.is-light {
+  background: var(--ncm-bg-elevated) !important;
   border-color: var(--ncm-border) !important;
 }
 
-/* 加载动画 */
-.el-loading-spinner {
-  .circular {
-    animation: loading-rotate 2s linear infinite;
-  }
+/* ============================================================
+   通用动效工具类
+   ============================================================ */
+@keyframes ncm-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes loading-rotate {
-  from { transform: rotate(0deg); }
+@keyframes ncm-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes ncm-spin {
   to { transform: rotate(360deg); }
+}
+
+@keyframes ncm-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.ncm-fade-up {
+  animation: ncm-fade-up 0.5s var(--ncm-ease-out) both;
+}
+
+/* 视图切换过渡 */
+.fade-slide-enter-active {
+  transition: opacity 0.3s var(--ncm-ease-out), transform 0.3s var(--ncm-ease-out);
+}
+.fade-slide-leave-active {
+  transition: opacity 0.2s var(--ncm-ease), transform 0.2s var(--ncm-ease);
+}
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
 }

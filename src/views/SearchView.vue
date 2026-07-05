@@ -1,90 +1,201 @@
 <template>
   <div class="search-view">
-    <div class="search-panel">
-      <!-- 搜索框 -->
+    <!-- 头部：标题 + 搜索框 -->
+    <header class="page-head">
+      <h1 class="page-title">发现音乐</h1>
+      <p class="page-sub">搜索歌曲、歌手，发现你的下一首循环</p>
+
       <div class="search-bar">
-        <el-input
-          v-model="query"
-          placeholder="搜索音乐、歌手"
-          size="large"
-          clearable
-          @keyup.enter="doSearch"
-          class="search-input"
-        >
-          <template #prefix>
-            <el-icon><Search /></el-icon>
-          </template>
-        </el-input>
-        <el-button type="primary" size="large" @click="doSearch" :loading="loading">搜索</el-button>
-      </div>
-
-      <!-- 结果标题 -->
-      <div class="panel-header" v-if="searched">
-        <h2>搜索结果</h2>
-        <span class="result-count" v-if="results.length > 0">共 {{ totalResults }} 首</span>
-      </div>
-
-      <!-- 搜索结果列表 -->
-      <div class="song-table" v-loading="loading" element-loading-text="搜索中...">
-        <div v-if="!isMobile" class="table-header">
-          <div class="col-index"></div>
-          <div class="col-title">歌曲</div>
-          <div class="col-artist">歌手</div>
-          <div class="col-actions"></div>
+        <div class="search-input-wrap">
+          <NcmIcon name="search" :size="18" class="search-icon" />
+          <input
+            v-model="query"
+            placeholder="搜索音乐、歌手"
+            class="search-input"
+            @keyup.enter="doSearch"
+          />
+          <button v-if="query" class="clear-btn" @click="query = ''">
+            <NcmIcon name="close" :size="14" />
+          </button>
         </div>
-        <div
-          v-for="(song, index) in results"
-          :key="song.id"
-          class="table-row"
-          :class="{ even: index % 2 === 0, 'is-mobile': isMobile }"
-          @dblclick="playSong(index)"
-          @click="isMobile && playSong(index)"
-        >
-          <div class="col-index">{{ String(index + 1).padStart(2, '0') }}</div>
-          <div class="col-title">
+        <button class="primary-btn search-btn" @click="doSearch" :disabled="loading">
+          <NcmIcon v-if="!loading" name="search" :size="16" class="search-icon-mobile" />
+          <span v-if="!loading" class="btn-text">搜索</span>
+          <span v-else class="loading-dot"></span>
+        </button>
+      </div>
+    </header>
+
+    <!-- 结果标题 -->
+    <div class="result-head" v-if="searched">
+      <h2 class="result-title">搜索结果</h2>
+      <span class="result-count tnum" v-if="results.length > 0">共 {{ totalResults }} 首</span>
+    </div>
+
+    <!-- 结果列表 -->
+    <div class="song-list" v-loading="loading" element-loading-text="搜索中...">
+      <div v-if="!isMobile && results.length > 0" class="row row-head">
+        <div class="cell cell-index">#</div>
+        <div class="cell cell-title">歌曲</div>
+        <div class="cell cell-artist">歌手</div>
+        <div class="cell cell-actions"></div>
+      </div>
+
+      <div
+        v-for="(song, index) in results"
+        :key="song.id"
+        class="row"
+        :class="{ 'is-mobile': isMobile, unavailable: song._unavailable }"
+        @dblclick="!song._unavailable && playSong(index)"
+        @click="isMobile && !song._unavailable && playSong(index)"
+      >
+        <div class="cell cell-index">
+          <span class="idx-text tnum">{{ String(index + 1).padStart(2, '0') }}</span>
+        </div>
+        <div class="cell cell-title">
+          <div class="song-cover">
+            <img v-if="song.pic" :src="song.pic" :alt="song.title" @error="handleImageError($event)" />
+            <NcmIcon v-else name="headset" :size="14" />
+          </div>
+          <div class="song-info">
             <span class="song-name">{{ song.title }}</span>
             <span v-if="isMobile" class="song-artist-mobile">{{ song.artist }}</span>
           </div>
-          <div v-if="!isMobile" class="col-artist">{{ song.artist }}</div>
-          <div class="col-actions" :class="{ 'mobile-visible': isMobile }">
-            <el-button text size="small" @click.stop="playSong(index)" class="action-btn" :loading="song._loading">
-              <el-icon><VideoPlay /></el-icon>
-            </el-button>
-            <el-button text size="small" @click.stop="saveSong(index)" class="action-btn" :loading="song._saving">
-              <el-icon><Collection /></el-icon>
-            </el-button>
-          </div>
         </div>
+        <div v-if="!isMobile" class="cell cell-artist">{{ song.artist }}</div>
+        <div class="cell cell-actions" :class="{ 'mobile-visible': isMobile }">
+          <!-- 桌面端：直接显示按钮 -->
+          <template v-if="!isMobile">
+            <button v-if="!song._unavailable" class="icon-btn primary" @click.stop="playSong(index)" :disabled="song._loading">
+              <NcmIcon v-if="!song._loading" name="play" :size="16" />
+              <span v-else class="mini-dot"></span>
+            </button>
+            <button v-if="!song._unavailable" class="icon-btn" @click.stop="saveSong(index)" :disabled="song._saving">
+              <NcmIcon v-if="!song._saving" name="collection" :size="16" />
+              <span v-else class="mini-dot"></span>
+            </button>
+            <span v-else class="unavailable-text">不可用</span>
+          </template>
+          <!-- 移动端：MoreFilled 菜单按钮 -->
+          <button
+            v-else
+            class="icon-btn mobile-menu-btn"
+            @click.stop="openMobileMenu(song, index)"
+            :disabled="song._unavailable"
+          >
+            <NcmIcon name="more-filled" :size="18" />
+          </button>
+        </div>
+      </div>
 
-        <!-- 空状态 -->
-        <div v-if="results.length === 0 && !loading && searched" class="empty-state">
-          <el-empty description="未找到相关歌曲" :image-size="80" />
+      <!-- 空状态 -->
+      <div v-if="results.length === 0 && !loading && searched" class="empty-state">
+        <div class="empty-mark">
+          <NcmIcon name="search" :size="40" />
+        </div>
+        <div class="empty-text">未找到相关歌曲</div>
+      </div>
+
+      <!-- 初始提示 -->
+      <div v-if="results.length === 0 && !loading && !searched" class="hint-state">
+        <div class="hint-suggestions">
+          <div class="hint-group">
+            <div class="hint-label">华语流行</div>
+            <div class="suggestions">
+              <button class="suggestion" v-for="word in cnSuggestions" :key="word" @click="query = word; doSearch()">{{ word }}</button>
+            </div>
+          </div>
+          <div class="hint-group">
+            <div class="hint-label">欧美流行</div>
+            <div class="suggestions">
+              <button class="suggestion" v-for="word in enSuggestions" :key="word" @click="query = word; doSearch()">{{ word }}</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
+
+    <!-- 移动端歌曲操作抽屉 -->
+    <transition name="drawer-fade">
+      <div v-if="isMobile && mobileMenu.visible" class="mobile-menu-mask" @click="mobileMenu.visible = false">
+        <transition name="menu-slide">
+          <div v-if="mobileMenu.visible" class="mobile-menu-drawer" @click.stop>
+            <div class="drawer-handle" @click="mobileMenu.visible = false"></div>
+            <div class="menu-song-info" v-if="mobileMenu.song">
+              <div class="menu-song-cover">
+                <img v-if="mobileMenu.song.pic" :src="mobileMenu.song.pic" alt="" />
+                <NcmIcon v-else name="headset" :size="24" />
+              </div>
+              <div class="menu-song-text">
+                <div class="menu-song-title">{{ mobileMenu.song.title }}</div>
+                <div class="menu-song-artist">{{ mobileMenu.song.artist }}</div>
+              </div>
+            </div>
+            <div class="menu-list">
+              <button class="menu-item" @click="handleMenuAction('play')" :disabled="mobileMenu.song?._loading">
+                <NcmIcon name="play" :size="18" />
+                <span>{{ mobileMenu.song?._loading ? '加载中...' : '播放' }}</span>
+              </button>
+              <button class="menu-item" @click="handleMenuAction('save')" :disabled="mobileMenu.song?._saving">
+                <NcmIcon name="collection" :size="18" />
+                <span>{{ mobileMenu.song?._saving ? '保存中...' : '保存到我的' }}</span>
+              </button>
+            </div>
+          </div>
+        </transition>
+      </div>
+    </transition>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { VideoPlay, Collection, Search } from '@element-plus/icons-vue'
+import NcmIcon from '../components/NcmIcon.vue'
 import { usePlayer } from '../composables/usePlayer.js'
 import { useMobile } from '../composables/useMobile.js'
-import { proxyFetch, MUSIC_SOURCE, UA } from '../config.js'
-import { addSong, saveLyrics } from '../db.js'
+import { addSong } from '../db.js'
 import { ElMessage } from 'element-plus'
+import { SONG_SEARCH_API, SEARCH_API_ID, SEARCH_API_KEY, MP3_BASE_URL, DEFAULT_COVER, proxyUrl } from '../config.js'
 
 const { isMobile } = useMobile()
 const route = useRoute()
-const { setSongs, playSong: playerPlaySong } = usePlayer()
+const { setSongs, playAt } = usePlayer()
 
 const query = ref('')
 const results = ref([])
 const loading = ref(false)
 const searched = ref(false)
 const totalResults = ref(0)
-const PAGE_SIZE = 20
+const cnSuggestions = [
+  '周杰伦', '林俊杰', '邓紫棋', '陈奕迅',
+  '王菲', '张学友', '五月天', '孙燕姿',
+  '薛之谦', '李荣浩', '毛不易', '华晨宇'
+]
+const enSuggestions = [
+  'Taylor Swift', 'Ed Sheeran', 'Adele', 'Bruno Mars'
+]
+
+// 移动端歌曲菜单抽屉
+const mobileMenu = ref({
+  visible: false,
+  song: null,
+  index: -1
+})
+
+function openMobileMenu(song, index) {
+  mobileMenu.value = { visible: true, song: { ...song }, index }
+}
+
+function handleMenuAction(action) {
+  const { index } = mobileMenu.value
+  mobileMenu.value.visible = false
+  if (action === 'play') {
+    playSong(index)
+  } else if (action === 'save') {
+    saveSong(index)
+  }
+}
 
 onMounted(() => {
   if (route.query.q) {
@@ -93,48 +204,87 @@ onMounted(() => {
   }
 })
 
+// 构建 MP3 播放地址
+function buildMp3Url(filePath) {
+  if (!filePath) return ''
+  return MP3_BASE_URL + '/' + filePath.replace(/\.wma$/i, '.mp3')
+}
+
+// 从歌曲页面抓取 $song_data 获取 MP3 地址 + 歌词页 URL（需走 CORS 代理）
+async function fetchSongMetaFromPage(pageUrl) {
+  const html = await fetch(proxyUrl(pageUrl)).then(r => r.text())
+
+  // MP3 地址
+  let audioUrl = ''
+  const audioMatch = html.match(/\$song_data\[\d+\]\s*=\s*"([^"]*)"/)
+  if (audioMatch) {
+    const parts = audioMatch[1].split('|')
+    if (parts.length >= 5) {
+      audioUrl = buildMp3Url(parts[4])
+    }
+  }
+
+  // 歌词页 URL（HTML 中的 <a href="/Songword/xx/xxxxx.htm">）
+  let lyricUrl = ''
+  const lyricMatch = html.match(/href=["']([^"']*\/Songword\/[^"']+\.htm)["']/i)
+  if (lyricMatch) {
+    const u = lyricMatch[1]
+    lyricUrl = u.startsWith('http') ? u : 'https://www.yymp3.com' + u
+  }
+
+  return { audioUrl, lyricUrl }
+}
+
+// 从歌词页抓取 LRC 文本（<div id="lrc"> 内的 <br> 分隔行）
+async function fetchLyricsFromPage(lyricUrl) {
+  if (!lyricUrl) return ''
+  try {
+    const html = await fetch(proxyUrl(lyricUrl)).then(r => r.text())
+    const match = html.match(/id=["']lrc["'][^>]*>([\s\S]*?)<\/div>/i)
+    if (!match) return ''
+    return match[1]
+      .split(/<br\s*\/?>/i)
+      .map(line => line.replace(/<[^>]+>/g, '').trim())
+      .filter(Boolean)
+      .join('\n')
+  } catch (e) {
+    console.warn('获取歌词失败:', e.message)
+    return ''
+  }
+}
+
 // 搜索歌曲
 async function doSearch() {
   if (!query.value.trim()) return
   loading.value = true
   searched.value = true
   try {
-    const allResults = []
-    const seen = new Set()
-    let page = 1
-    let totalPages = 1
+    const url = `${SONG_SEARCH_API}?id=${SEARCH_API_ID}&key=${SEARCH_API_KEY}&type=3&words=${encodeURIComponent(query.value)}`
+    const data = await fetch(url).then(r => r.json())
 
-    while (allResults.length < PAGE_SIZE && page <= totalPages && page <= 10) {
-      const url = `${MUSIC_SOURCE}/s/${encodeURIComponent(query.value)}?page=${page}`
-      const html = await proxyFetch(url).then(r => r.text())
+    if (data.code === 200 && Array.isArray(data.songs)) {
+      results.value = data.songs
+        .filter(s => s.url)  // 过滤掉 url 为空的记录
+        .map((s, i) => ({
+          id: `hz_${i}`,
+          title: s.name || '未知标题',
+          artist: s.singer || '未知歌手',
+          pageUrl: s.url || '',
+          audioUrl: '',
+          lyricUrl: '',
+          lrc: '',
+          _loading: false,
+          _saving: false,
+          _unavailable: false
+        }))
+      totalResults.value = results.value.length
 
-      const rowRe = /<tr>[\s\S]*?<td[^>]*>(\d+)<\/td>[\s\S]*?<td>[\s\S]*?<a href="(\/play\/\d+)"[^>]*>([\s\S]*?)<\/a>[\s\S]*?<\/td>[\s\S]*?<td[^>]*>([\s\S]*?)<\/td>/g
-      let m
-      while ((m = rowRe.exec(html)) !== null) {
-        const id = m[2].replace('/play/', '')
-        if (!seen.has(id)) {
-          seen.add(id)
-          allResults.push({
-            id,
-            title: m[3].replace(/<[^>]*>/g, '').trim(),
-            artist: m[4].replace(/<[^>]*>/g, '').trim()
-          })
-        }
+      if (results.value.length === 0) {
+        ElMessage.info('未找到相关歌曲')
       }
-
-      if (page === 1) {
-        const tailMatch = html.match(/href="[^"]*\?page=(\d+)"[^>]*>尾页/)
-        if (tailMatch) totalPages = parseInt(tailMatch[1])
-        else {
-          const pageMatch = html.match(/共\s*(\d+)\s*页/)
-          totalPages = pageMatch ? parseInt(pageMatch[1]) : 1
-        }
-      }
-      page++
+    } else {
+      throw new Error('搜索结果格式错误')
     }
-
-    results.value = allResults.slice(0, PAGE_SIZE).map(s => ({ ...s, _loading: false, _saving: false, _downloading: false }))
-    totalResults.value = results.value.length
   } catch (err) {
     ElMessage.error('搜索失败：' + err.message)
     results.value = []
@@ -143,95 +293,71 @@ async function doSearch() {
   }
 }
 
-// 获取歌曲详情和播放地址
-async function fetchSongDetail(songId) {
-  const url = `${MUSIC_SOURCE}/play/${songId}`
-  const html = await proxyFetch(url).then(r => r.text())
-
-  const extractVar = (name) => {
-    const re = new RegExp(`window\\.${name}\\s*=\\s*'([^']*)'`)
-    const m = html.match(re)
-    return m ? m[1] : ''
-  }
-
-  const title = extractVar('mp3_title') || '未知标题'
-  const artist = extractVar('mp3_author') || '未知歌手'
-  let cover = extractVar('mp3_cover') || ''
-  // 如果是相对路径，补全域名
-  if (cover && cover.startsWith('/')) {
-    cover = MUSIC_SOURCE + cover
-  }
-  const playId = extractVar('play_id') || ''
-
-  // 解码 mp3_extra_url（歌曲海的高品质源）
-  const rawExtraUrl = extractVar('mp3_extra_url') || ''
-  let downloadUrl = ''
-  if (rawExtraUrl) {
-    try {
-      downloadUrl = atob(rawExtraUrl.replace(/#/g, 'H').replace(/%/g, 'S'))
-    } catch { /* ignore */ }
-  }
-
-  // 歌词
-  let lrc = ''
-  const lrcMatch = html.match(/<div[^>]*id="content-lrc2"[^>]*>([\s\S]*?)<\/div>/)
-  if (lrcMatch) {
-    lrc = lrcMatch[1].replace(/<br\s*\/?>/g, '\n').replace(/<[^>]*>/g, '').trim()
-  }
-
-  // 获取 MP3 URL
-  let audioUrl = ''
-  if (playId) {
-    try {
-      const apiRes = await proxyFetch(`${MUSIC_SOURCE}/api/music`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'X-Requested-With': 'XMLHttpRequest',
-          'X-Custom-Header': 'SecretKey'
-        },
-        body: `id=${encodeURIComponent(playId)}&type=0`
-      }).then(r => r.json())
-
-      if (apiRes.code === 200 && apiRes.data?.url) {
-        audioUrl = apiRes.data.url
-        // 如果是相对路径，补全域名
-        if (audioUrl.startsWith('/')) {
-          audioUrl = MUSIC_SOURCE + audioUrl
-        }
-      }
-    } catch (e) {
-      console.error('Music API error:', e.message)
-    }
-  }
-
-  if (!audioUrl) {
-    audioUrl = extractVar('mp3_url') || ''
-    // 如果是相对路径，补全域名
-    if (audioUrl && audioUrl.startsWith('/')) {
-      audioUrl = MUSIC_SOURCE + audioUrl
-    }
-  }
-
-  return { title, artist, cover, audioUrl, downloadUrl, lrc }
+function handleImageError(event) {
+  event.target.src = DEFAULT_COVER
 }
 
-// 播放歌曲（同时缓存音频到数据库）
+// 播放歌曲
 async function playSong(index) {
   const song = results.value[index]
   if (!song) return
   song._loading = true
   try {
-    const detail = await fetchSongDetail(song.id)
-    if (!detail.audioUrl) throw new Error('未获取到播放地址')
+    // 拉取音频地址 + 歌词 URL（已缓存则跳过）
+    let audioUrl = song.audioUrl
+    let lyricUrl = song.lyricUrl
+    if (!audioUrl || !lyricUrl) {
+      const meta = await fetchSongMetaFromPage(song.pageUrl)
+      if (!audioUrl) audioUrl = meta.audioUrl
+      if (!lyricUrl) {
+        lyricUrl = meta.lyricUrl
+        song.lyricUrl = lyricUrl
+      }
+    }
+    if (!audioUrl) throw new Error('未获取到播放地址')
+    song.audioUrl = audioUrl
 
-    // 下载音频并缓存到数据库
+    try {
+      const testResp = await fetch(proxyUrl(audioUrl), { method: 'HEAD' })
+      if (!testResp.ok) {
+        song._unavailable = true
+        const nextIndex = findNextAvailable(index + 1)
+        if (nextIndex !== -1) {
+          ElMessage.warning(`${song.title} 资源不可用，尝试播放下一首`)
+          await playSong(nextIndex)
+        } else {
+          ElMessage.error('没有可播放的歌曲')
+        }
+        return
+      }
+    } catch (e) {
+      // HEAD 请求失败，继续尝试播放
+    }
+
     let audioBlob = null
     try {
-      const audioResp = await proxyFetch(detail.audioUrl)
+      const audioResp = await fetch(proxyUrl(audioUrl))
+      if (!audioResp.ok) {
+        song._unavailable = true
+        const nextIndex = findNextAvailable(index + 1)
+        if (nextIndex !== -1) {
+          ElMessage.warning(`${song.title} 资源不可用，尝试播放下一首`)
+          await playSong(nextIndex)
+        } else {
+          ElMessage.error('没有可播放的歌曲')
+        }
+        return
+      }
       audioBlob = await audioResp.blob()
     } catch (e) {
       console.warn('缓存音频失败:', e.message)
+    }
+
+    // 拉取歌词（失败不阻塞播放）
+    let lrc = song.lrc
+    if (!lrc && lyricUrl) {
+      lrc = await fetchLyricsFromPage(lyricUrl)
+      song.lrc = lrc
     }
 
     const playerSongs = results.value.map(s => ({
@@ -240,34 +366,33 @@ async function playSong(index) {
       artist: s.artist,
       audioUrl: '',
       audioBlob: null,
-      cover: '',
+      cover: DEFAULT_COVER,
       lrc: '',
-      duration: '--:--'
+      duration: '--:--',
+      _unavailable: s._unavailable || false
     }))
 
-    playerSongs[index].audioUrl = detail.audioUrl
+    playerSongs[index].audioUrl = audioUrl
     playerSongs[index].audioBlob = audioBlob
-    playerSongs[index].title = detail.title || song.title
-    playerSongs[index].artist = detail.artist || song.artist
-    playerSongs[index].cover = detail.cover
-    playerSongs[index].lrc = detail.lrc || ''
+    playerSongs[index].title = song.title
+    playerSongs[index].artist = song.artist
+    playerSongs[index].lrc = lrc
 
-    // 保存到数据库
     await addSong({
-      title: detail.title || song.title,
-      artist: detail.artist || song.artist,
+      title: song.title,
+      artist: song.artist,
       album: '',
       duration: '',
-      cover: detail.cover,
-      audioUrl: detail.audioUrl,
-      downloadUrl: detail.downloadUrl || '',
+      cover: DEFAULT_COVER,
+      audioUrl,
+      downloadUrl: audioUrl,
       audioBlob,
       coverBlob: null,
-      lrc: detail.lrc || ''
+      lrc
     })
 
     setSongs(playerSongs)
-    playerPlaySong(index)
+    playAt(index)
   } catch (err) {
     ElMessage.error('播放失败：' + err.message)
   } finally {
@@ -275,33 +400,63 @@ async function playSong(index) {
   }
 }
 
-// 保存到本地库
+function findNextAvailable(startIndex) {
+  const len = results.value.length
+  for (let i = 0; i < len; i++) {
+    const idx = (startIndex + i) % len
+    if (!results.value[idx]._unavailable) {
+      return idx
+    }
+  }
+  return -1
+}
+
 async function saveSong(index) {
   const song = results.value[index]
   if (!song) return
   song._saving = true
   try {
-    const detail = await fetchSongDetail(song.id)
-    if (!detail.audioUrl) throw new Error('未获取到播放地址')
+    // 拉取音频地址 + 歌词 URL
+    let audioUrl = song.audioUrl
+    let lyricUrl = song.lyricUrl
+    if (!audioUrl || !lyricUrl) {
+      const meta = await fetchSongMetaFromPage(song.pageUrl)
+      if (!audioUrl) audioUrl = meta.audioUrl
+      if (!lyricUrl) {
+        lyricUrl = meta.lyricUrl
+        song.lyricUrl = lyricUrl
+      }
+    }
+    if (!audioUrl) throw new Error('未获取到播放地址')
+    song.audioUrl = audioUrl
 
-    // 保存到 IndexedDB（只保存 URL，不下载 blob）
-    const songId = await addSong({
-      title: detail.title || song.title,
-      artist: detail.artist || song.artist,
+    let audioBlob = null
+    try {
+      const audioResp = await fetch(proxyUrl(audioUrl))
+      audioBlob = await audioResp.blob()
+    } catch (e) {
+      console.warn('下载音频失败:', e.message)
+    }
+
+    // 拉取歌词
+    let lrc = song.lrc
+    if (!lrc && lyricUrl) {
+      lrc = await fetchLyricsFromPage(lyricUrl)
+      song.lrc = lrc
+    }
+
+    await addSong({
+      title: song.title,
+      artist: song.artist,
       album: '',
       duration: '',
-      cover: detail.cover,
-      audioUrl: detail.audioUrl,
-      downloadUrl: detail.downloadUrl || '',
-      audioBlob: null,
+      cover: DEFAULT_COVER,
+      audioUrl,
+      downloadUrl: audioUrl,
+      audioBlob,
       coverBlob: null,
-      lrc: detail.lrc || ''
+      lrc
     })
-
-    // 保存歌词
-    if (detail.lrc) {
-      await saveLyrics(songId, detail.lrc)
-    }
 
     ElMessage.success('添加成功')
   } catch (err) {
@@ -310,89 +465,272 @@ async function saveSong(index) {
     song._saving = false
   }
 }
-
 </script>
 
 <style scoped>
 .search-view {
-  padding: 20px;
-  height: 100%;
+  padding: 32px 40px calc(var(--ncm-player-bar-height) + 48px);
+  min-height: 100%;
 }
 
-.search-panel {
-  background: var(--ncm-bg-card);
-  border-radius: var(--ncm-radius-lg);
-  box-shadow: var(--ncm-shadow);
-  overflow: hidden;
-  transition: var(--ncm-transition);
+/* ===== 头部 ===== */
+.page-head {
+  margin-bottom: 28px;
+}
+
+.page-title {
+  font-size: var(--ncm-text-3xl);
+  font-weight: 700;
+  color: var(--ncm-text-primary);
+  letter-spacing: -0.02em;
+  margin: 0 0 6px;
+  line-height: 1.1;
+}
+
+.page-sub {
+  font-size: var(--ncm-text-md);
+  color: var(--ncm-text-tertiary);
+  margin: 0 0 20px;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.search-input-wrap {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  max-width: 560px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 16px;
+  color: var(--ncm-text-tertiary);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.search-input {
+  width: 100%;
+  height: 44px;
+  padding: 0 44px 0 44px;
+  border-radius: var(--ncm-radius-full);
+  background: var(--ncm-bg-input);
   border: 1px solid var(--ncm-border);
+  color: var(--ncm-text-primary);
+  font-size: var(--ncm-text-md);
+  outline: none;
+  transition: var(--ncm-transition-fast);
+  font-family: inherit;
 }
 
-.panel-header {
+.search-input::placeholder {
+  color: var(--ncm-text-tertiary);
+}
+
+.search-input:hover {
+  border-color: var(--ncm-border-strong);
+}
+
+.search-input:focus {
+  border-color: var(--ncm-primary);
+  box-shadow: 0 0 0 4px var(--ncm-primary-soft);
+}
+
+.clear-btn {
+  position: absolute;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--ncm-bg-hover);
+  border: none;
+  color: var(--ncm-text-tertiary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--ncm-transition-fast);
+}
+
+.clear-btn:hover {
+  color: var(--ncm-text-primary);
+  background: var(--ncm-bg-active);
+}
+
+.primary-btn {
+  height: 44px;
+  padding: 0 22px;
+  border-radius: var(--ncm-radius-full);
+  background: var(--ncm-primary);
+  color: #fff;
+  border: none;
+  font-size: var(--ncm-text-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--ncm-transition-fast);
+  box-shadow: 0 4px 14px var(--ncm-primary-glow);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+}
+
+.primary-btn:hover:not(:disabled) {
+  background: var(--ncm-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px var(--ncm-primary-glow);
+}
+
+.primary-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.loading-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  animation: ncm-spin 0.8s linear infinite;
+}
+
+/* ===== 结果标题 ===== */
+.result-head {
   display: flex;
   align-items: baseline;
   gap: 12px;
-  padding: 18px 24px;
-  border-bottom: 1px solid var(--ncm-border);
+  margin-bottom: 16px;
+  padding-top: 8px;
+  border-top: 1px solid var(--ncm-border);
+  padding-top: 24px;
 }
 
-.panel-header h2 {
-  font-size: 18px;
+.result-title {
+  font-size: var(--ncm-text-xl);
   font-weight: 600;
   color: var(--ncm-text-primary);
   margin: 0;
 }
 
 .result-count {
-  font-size: 12px;
+  font-size: var(--ncm-text-sm);
   color: var(--ncm-text-tertiary);
 }
 
-.song-table {
+/* ===== 列表（与 HomeView 一致） ===== */
+.song-list {
   min-height: 200px;
 }
 
-.table-header {
+.row {
   display: flex;
   align-items: center;
-  padding: 12px 24px;
-  background: rgba(255, 255, 255, 0.02);
-  border-bottom: 1px solid var(--ncm-border);
-  font-size: 12px;
-  color: var(--ncm-text-tertiary);
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
-
-.table-row {
-  display: flex;
-  align-items: center;
-  padding: 12px 24px;
-  border-bottom: 1px solid var(--ncm-border-light);
+  padding: 10px 12px;
+  border-radius: var(--ncm-radius-sm);
   cursor: pointer;
-  transition: var(--ncm-transition-fast);
+  transition: background 0.15s var(--ncm-ease);
+  position: relative;
 }
 
-.table-row:hover {
+.row:hover {
   background: var(--ncm-bg-hover);
 }
 
-.col-index {
-  width: 40px;
-  font-size: 13px;
-  color: var(--ncm-text-placeholder);
-  flex-shrink: 0;
-  text-align: center;
+.row.unavailable {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
-.col-title {
+.row.unavailable:hover {
+  background: transparent;
+}
+
+.row-head {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--ncm-border);
+  border-radius: 0;
+  font-size: var(--ncm-text-xs);
+  color: var(--ncm-text-tertiary);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: default;
+  background: transparent;
+}
+
+.row-head:hover {
+  background: transparent;
+}
+
+.cell {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.cell-index {
+  width: 48px;
+  flex-shrink: 0;
+  justify-content: center;
+  color: var(--ncm-text-tertiary);
+  font-size: var(--ncm-text-md);
+}
+
+.idx-text {
+  font-variant-numeric: tabular-nums;
+  transition: color 0.15s;
+}
+
+.row:hover .idx-text {
+  color: var(--ncm-text-secondary);
+}
+
+.cell-title {
   flex: 1;
   min-width: 0;
   padding-right: 16px;
+  gap: 12px;
+}
+
+.song-cover {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--ncm-radius-sm);
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--ncm-bg-input);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ncm-text-tertiary);
+  transition: transform 0.2s var(--ncm-ease-out);
+  box-shadow: var(--ncm-shadow-sm);
+}
+
+.row:hover .song-cover {
+  transform: scale(1.06);
+}
+
+.song-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.song-info {
+  min-width: 0;
+  flex: 1;
 }
 
 .song-name {
-  font-size: 13px;
+  font-size: var(--ncm-text-md);
   color: var(--ncm-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -401,9 +739,9 @@ async function saveSong(index) {
   font-weight: 500;
 }
 
-.col-artist {
-  width: 120px;
-  font-size: 13px;
+.cell-artist {
+  width: 180px;
+  font-size: var(--ncm-text-md);
   color: var(--ncm-text-secondary);
   flex-shrink: 0;
   overflow: hidden;
@@ -411,112 +749,367 @@ async function saveSong(index) {
   white-space: nowrap;
 }
 
-.col-actions {
-  width: 80px;
+.row-head .cell-artist {
+  color: var(--ncm-text-quaternary);
+  font-weight: 600;
+}
+
+.cell-actions {
+  width: 96px;
   display: flex;
+  justify-content: flex-end;
   gap: 4px;
   flex-shrink: 0;
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity 0.18s var(--ncm-ease);
 }
 
-.table-row:hover .col-actions {
+.row:hover .cell-actions {
   opacity: 1;
 }
 
-.action-btn {
-  color: var(--ncm-text-tertiary) !important;
-  padding: 6px !important;
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--ncm-radius-sm);
+  background: transparent;
+  border: none;
+  color: var(--ncm-text-tertiary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: var(--ncm-transition-fast);
 }
 
-.action-btn:hover {
-  color: var(--ncm-primary) !important;
+.icon-btn:hover {
+  background: var(--ncm-bg-hover);
+  color: var(--ncm-text-primary);
+  transform: translateY(-1px);
 }
 
-.empty-state {
+.icon-btn.primary:hover {
+  color: var(--ncm-primary);
+}
+
+.icon-btn:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.mini-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: var(--ncm-text-secondary);
+  animation: ncm-spin 0.8s linear infinite;
+}
+
+.unavailable-text {
+  font-size: var(--ncm-text-xs);
+  color: var(--ncm-text-tertiary);
+}
+
+/* ===== 空状态 ===== */
+.empty-state,
+.hint-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   padding: 80px 20px;
+  gap: 16px;
 }
 
-/* 搜索框 */
-.search-bar {
+.empty-mark {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--ncm-bg-elevated);
+  border: 1px solid var(--ncm-border);
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--ncm-border);
-  background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%);
+  justify-content: center;
+  color: var(--ncm-text-tertiary);
 }
 
-.search-input {
-  flex: 1;
+.empty-text {
+  font-size: var(--ncm-text-md);
+  color: var(--ncm-text-tertiary);
 }
 
-/* 移动端 */
+.hint-suggestions {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.hint-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hint-label {
+  font-size: var(--ncm-text-xs);
+  color: var(--ncm-text-quaternary);
+  margin-bottom: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.suggestion {
+  height: 32px;
+  padding: 0 16px;
+  border-radius: var(--ncm-radius-full);
+  background: var(--ncm-bg-elevated);
+  border: 1px solid var(--ncm-border);
+  color: var(--ncm-text-secondary);
+  font-size: var(--ncm-text-sm);
+  cursor: pointer;
+  transition: var(--ncm-transition-fast);
+  font-family: inherit;
+}
+
+.suggestion:hover {
+  background: var(--ncm-bg-active);
+  border-color: var(--ncm-primary);
+  color: var(--ncm-primary);
+  transform: translateY(-1px);
+}
+
+/* ===== 移动端 ===== */
 @media (max-width: 768px) {
-  .search-view { padding: 0; }
-  .search-panel { border-radius: 0; box-shadow: none; }
+  .search-view { padding: 16px 16px calc(var(--ncm-player-bar-height-mobile) + var(--ncm-tabbar-height-mobile) + var(--ncm-safe-bottom) + 32px); }
+
+  .page-title { font-size: var(--ncm-text-2xl); }
+  .page-sub { font-size: var(--ncm-text-sm); margin-bottom: 16px; }
 
   .search-bar {
-    display: flex;
-    align-items: center;
-    padding: 12px 16px;
-    gap: 10px;
-    flex-wrap: wrap;
+    gap: 8px;
   }
 
-  .search-bar .el-button { order: 3; }
-
-  .table-row.is-mobile {
-    display: flex;
-    align-items: center;
-    padding: 12px 16px;
-    gap: 10px;
-    cursor: pointer;
+  .search-input {
+    height: 40px;
+    font-size: var(--ncm-text-sm);
   }
 
-  .table-row.is-mobile:active {
-    background: var(--ncm-bg-hover);
+  .primary-btn {
+    height: 40px;
+    padding: 0 16px;
+    min-width: 64px;
   }
 
-  .table-row.is-mobile .col-index {
-    width: 28px;
-    font-size: 12px;
-    flex-shrink: 0;
-    text-align: center;
+  .row.is-mobile {
+    padding: 10px 8px;
+    gap: 0;
   }
 
-  .table-row.is-mobile .col-title {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
+  .row.is-mobile .cell-index {
+    width: 32px;
+    font-size: var(--ncm-text-sm);
+  }
+
+  .row.is-mobile .cell-title {
+    gap: 12px;
+    padding-right: 8px;
+  }
+
+  .row.is-mobile .song-cover {
+    width: 44px;
+    height: 44px;
   }
 
   .song-artist-mobile {
-    font-size: 11px;
+    font-size: var(--ncm-text-xs);
     color: var(--ncm-text-tertiary);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    margin-top: 3px;
+    display: block;
   }
 
-  .col-actions.mobile-visible {
+  .cell-actions.mobile-visible {
     opacity: 1 !important;
     width: auto;
-    display: flex;
-    align-items: center;
     gap: 0;
-    flex-shrink: 0;
   }
 
-  .col-actions.mobile-visible .action-btn {
-    padding: 8px !important;
+  .cell-actions.mobile-visible .icon-btn {
+    width: 36px;
+    height: 36px;
   }
 
-  .col-actions.mobile-visible .action-btn:active {
+  .cell-actions.mobile-visible .icon-btn:active {
     opacity: 0.6;
+    transform: none;
   }
 }
+
+/* ===== 移动端搜索按钮改为图标内嵌 ===== */
+.search-icon-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .primary-btn.search-btn {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .search-btn .btn-text {
+    display: none;
+  }
+
+  .search-btn .search-icon-mobile {
+    display: inline-flex;
+  }
+
+  .row.is-mobile {
+    padding: 12px 8px;
+    min-height: 56px;
+  }
+
+  .cell-actions.mobile-visible .icon-btn,
+  .mobile-menu-btn {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .suggestion {
+    height: 36px;
+    padding: 0 14px;
+  }
+}
+
+/* ===== 移动端歌曲菜单抽屉 ===== */
+.mobile-menu-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
+  z-index: 1150;
+}
+
+.mobile-menu-drawer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--ncm-bg-elevated);
+  border-top-left-radius: var(--ncm-radius-xl);
+  border-top-right-radius: var(--ncm-radius-xl);
+  padding: 8px 0 calc(env(safe-area-inset-bottom, 0) + 16px);
+  z-index: 1200;
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.5);
+}
+
+.mobile-menu-drawer .drawer-handle {
+  width: 40px;
+  height: 4px;
+  background: var(--ncm-border-strong);
+  border-radius: 2px;
+  margin: 8px auto 16px;
+}
+
+.menu-song-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px 16px;
+  border-bottom: 1px solid var(--ncm-border);
+}
+
+.menu-song-cover {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--ncm-radius-sm);
+  background: var(--ncm-bg-input);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  color: var(--ncm-text-tertiary);
+}
+
+.menu-song-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.menu-song-title {
+  font-size: var(--ncm-text-md);
+  font-weight: 500;
+  color: var(--ncm-text-primary);
+  margin-bottom: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-song-artist {
+  font-size: var(--ncm-text-sm);
+  color: var(--ncm-text-tertiary);
+}
+
+.menu-list {
+  padding: 8px 0;
+}
+
+.menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  background: transparent;
+  border: none;
+  color: var(--ncm-text-primary);
+  font-size: var(--ncm-text-md);
+  font-family: inherit;
+  cursor: pointer;
+  transition: var(--ncm-transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.menu-item:active {
+  background: var(--ncm-bg-hover);
+}
+
+.menu-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.menu-fade-enter-active { transition: opacity 0.3s var(--ncm-ease); }
+.menu-fade-leave-active { transition: opacity 0.2s var(--ncm-ease); }
+.menu-fade-enter-from, .menu-fade-leave-to { opacity: 0; }
+
+.menu-slide-enter-active { animation: menuSlideUp 0.35s var(--ncm-ease-out); }
+.menu-slide-leave-active { animation: menuSlideUp 0.25s var(--ncm-ease) reverse; }
+
+@keyframes menuSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.drawer-fade-enter-active { transition: opacity 0.3s var(--ncm-ease); }
+.drawer-fade-leave-active { transition: opacity 0.2s var(--ncm-ease); }
+.drawer-fade-enter-from, .drawer-fade-leave-to { opacity: 0; }
 </style>

@@ -1,91 +1,97 @@
 <template>
   <div class="home-view">
-    <el-row :gutter="isMobile ? 0 : 20">
-      <!-- 左侧歌曲列表 -->
-      <el-col :span="isMobile ? 24 : 18">
-        <div class="list-panel">
-          <!-- 列表头 -->
-          <div class="list-toolbar">
-            <div class="toolbar-left">
-              <h2>{{ listTitle }}</h2>
-              <span class="song-count">共 {{ songs.length }} 首</span>
-            </div>
-            <div class="toolbar-right">
-              <el-button type="primary" size="small" @click="playAll" :disabled="songs.length === 0">
-                <el-icon><VideoPlay /></el-icon> 播放全部
-              </el-button>
-            </div>
-          </div>
+    <!-- 头部：标题 + 计数 + 主操作 -->
+    <header class="page-head">
+      <div class="head-meta">
+        <h1 class="page-title">{{ listTitle }}</h1>
+        <div class="page-sub">
+          <span class="count tnum">{{ songs.length }}</span>
+          <span class="count-label">首歌曲</span>
+        </div>
+      </div>
+      <div class="head-actions">
+        <button class="primary-btn" @click="playAll" :disabled="songs.length === 0">
+          <NcmIcon name="play" :size="16" />
+          <span>播放全部</span>
+        </button>
+      </div>
+    </header>
 
-          <!-- 表格 -->
-          <div class="song-table" v-loading="loading" element-loading-text="加载中...">
-            <!-- 桌面端表头 -->
-            <div v-if="!isMobile" class="table-header">
-              <div class="col-index"></div>
-              <div class="col-title">歌曲</div>
-              <div class="col-artist">歌手</div>
-              <div class="col-actions"></div>
-            </div>
-            <div
-              v-for="(song, index) in songs"
-              :key="song.id"
-              class="table-row"
-              :class="{
-                active: song.id === playerState.currentSong?.id,
-                even: index % 2 === 0,
-                'is-mobile': isMobile
-              }"
-              @dblclick="playAt(index, $event)"
-              @click="isMobile && playAt(index, $event)"
-            >
-              <div class="col-index">
-                <span v-if="song.id !== playerState.currentSong?.id">{{ String(index + 1).padStart(2, '0') }}</span>
-                <el-icon v-else class="playing-icon"><Headset /></el-icon>
-              </div>
-              <div class="col-title" @click.stop="playAt(index, $event)">
-                <div class="song-cover" v-if="getCoverUrl(song)" :ref="el => setCoverRef(el, index)">
-                  <img :src="getCoverUrl(song)" :alt="song.title" />
-                </div>
-                <div class="song-cover placeholder" v-else :ref="el => setCoverRef(el, index)">
-                  <el-icon :size="14"><Headset /></el-icon>
-                </div>
-                <div class="song-info">
-                  <span class="song-name">
-                    {{ song.title || song.filename }}
-                    <el-icon v-if="favSet.has(song.id)" :size="10" class="fav-icon-small"><StarFilled /></el-icon>
-                  </span>
-                  <!-- 移动端：歌手名跟在标题下面 -->
-                  <span v-if="isMobile" class="song-artist-mobile">
-                    {{ song.artist || '未知歌手' }}
-                  </span>
-                </div>
-              </div>
-              <div v-if="!isMobile" class="col-artist" @click.stop="playAt(index, $event)">{{ song.artist || '未知歌手' }}</div>
-              <div class="col-actions" :class="{ 'mobile-visible': isMobile }">
-                <!-- 桌面端：展开的按钮 -->
-                <template v-if="!isMobile">
-                  <el-button text size="small" @click.stop="toggleFav(song)" class="action-btn" :class="{ 'is-fav': favSet.has(song.id) }">
-                    <el-icon :style="{ color: favSet.has(song.id) ? '#C20C0C' : '' }"><StarFilled /></el-icon>
-                  </el-button>
-                  <el-button text size="small" @click.stop="removeSong(song.id)" class="action-btn del-btn">
-                    <el-icon><DeleteFilled /></el-icon>
-                  </el-button>
-                </template>
-                <!-- 移动端：点击打开底部菜单 -->
-                <el-button v-else text size="small" @click.stop="openMobileMenu(song, index)" class="action-btn menu-btn">
-                  <el-icon><MoreFilled /></el-icon>
-                </el-button>
-              </div>
-            </div>
+    <!-- 列表 -->
+    <div class="song-list" v-loading="loading" element-loading-text="加载中...">
+      <!-- 桌面端表头 -->
+      <div v-if="!isMobile && songs.length > 0" class="row row-head">
+        <div class="cell cell-index">#</div>
+        <div class="cell cell-title">歌曲</div>
+        <div class="cell cell-artist">歌手</div>
+        <div class="cell cell-actions"></div>
+      </div>
 
-            <!-- 空状态 -->
-            <div v-if="songs.length === 0 && !loading" class="empty-state">
-              <el-empty :description="emptyText" :image-size="80" />
-            </div>
+      <div
+        v-for="(song, index) in songs"
+        :key="song.id"
+        class="row"
+        :class="{
+          active: song.id === playerCurrentSong?.id,
+          'is-mobile': isMobile
+        }"
+        @dblclick="playAt(index, $event)"
+        @click="isMobile && playAt(index, $event)"
+      >
+        <!-- 索引 / 播放指示 -->
+        <div class="cell cell-index">
+          <span v-if="song.id !== playerCurrentSong?.id" class="idx-text tnum">{{ String(index + 1).padStart(2, '0') }}</span>
+          <div v-else class="playing-wave" :class="{ paused: !isPlayerPlaying }">
+            <span></span><span></span><span></span><span></span>
           </div>
         </div>
-      </el-col>
-    </el-row>
+
+        <!-- 标题 + 封面 -->
+        <div class="cell cell-title" @click.stop="playAt(index, $event)">
+          <div class="song-cover" :ref="el => setCoverRef(el, index)">
+            <img v-if="getCoverUrl(song)" :src="getCoverUrl(song)" :alt="song.title" />
+            <NcmIcon v-else name="headset" :size="14" />
+          </div>
+          <div class="song-info">
+            <span class="song-name">
+              {{ song.title || song.filename }}
+              <NcmIcon v-if="favSet.has(song.id)" name="star-filled" :size="11" class="fav-mark" />
+            </span>
+            <span v-if="isMobile" class="song-artist-mobile">
+              {{ song.artist || '未知歌手' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- 歌手 -->
+        <div v-if="!isMobile" class="cell cell-artist" @click.stop="playAt(index, $event)">
+          {{ song.artist || '未知歌手' }}
+        </div>
+
+        <!-- 操作 -->
+        <div class="cell cell-actions" :class="{ 'mobile-visible': isMobile }">
+          <template v-if="!isMobile">
+            <button class="icon-btn" @click.stop="toggleFav(song)" :class="{ 'is-fav': favSet.has(song.id) }">
+              <NcmIcon name="star-filled" :size="16" />
+            </button>
+            <button class="icon-btn danger" @click.stop="removeSong(song.id)">
+              <NcmIcon name="delete-filled" :size="16" />
+            </button>
+          </template>
+          <button v-else class="icon-btn" @click.stop="openMobileMenu(song, index)">
+            <NcmIcon name="more-filled" :size="18" />
+          </button>
+        </div>
+      </div>
+
+      <!-- 空状态 -->
+      <div v-if="songs.length === 0 && !loading" class="empty-state">
+        <div class="empty-mark">
+          <NcmIcon name="headset" :size="40" />
+        </div>
+        <div class="empty-text">{{ emptyText }}</div>
+      </div>
+    </div>
 
     <!-- 移动端底部菜单 -->
     <el-drawer
@@ -96,12 +102,11 @@
       :with-header="false"
       class="mobile-menu-drawer"
     >
+      <div class="mobile-menu-handle"></div>
       <div class="mobile-menu-header">
-        <div class="mobile-menu-cover" v-if="getCoverUrl(mobileMenuSong)">
-          <img :src="getCoverUrl(mobileMenuSong)" :alt="mobileMenuSong?.title" />
-        </div>
-        <div class="mobile-menu-cover placeholder" v-else>
-          <el-icon :size="20"><Headset /></el-icon>
+        <div class="mobile-menu-cover">
+          <img v-if="getCoverUrl(mobileMenuSong)" :src="getCoverUrl(mobileMenuSong)" :alt="mobileMenuSong?.title" />
+          <NcmIcon v-else name="headset" :size="20" />
         </div>
         <div class="mobile-menu-info">
           <div class="mobile-menu-title">{{ mobileMenuSong?.title || mobileMenuSong?.filename }}</div>
@@ -110,12 +115,11 @@
       </div>
       <div class="mobile-menu-list">
         <div class="mobile-menu-item" @click="handleMenuCommand('favorite', mobileMenuSong, mobileMenuIndex)">
-          <el-icon :size="18" :style="{ color: favSet.has(mobileMenuSong?.id) ? '#C20C0C' : '' }"><StarFilled /></el-icon>
+          <NcmIcon name="star-filled" :size="18" :style="{ color: favSet.has(mobileMenuSong?.id) ? 'var(--ncm-primary)' : '' }" />
           <span>{{ favSet.has(mobileMenuSong?.id) ? '取消收藏' : '收藏' }}</span>
         </div>
-        
         <div class="mobile-menu-item danger" @click="handleMenuCommand('remove', mobileMenuSong, mobileMenuIndex)">
-          <el-icon :size="18"><DeleteFilled /></el-icon>
+          <NcmIcon name="delete-filled" :size="18" />
           <span>移除</span>
         </div>
       </div>
@@ -126,9 +130,10 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { StarFilled, DeleteFilled, VideoPlay, Timer, Headset, MoreFilled } from '@element-plus/icons-vue'
+import NcmIcon from '../components/NcmIcon.vue'
 import { usePlayer } from '../composables/usePlayer.js'
 import { useMobile } from '../composables/useMobile.js'
+import { DEFAULT_COVER } from '../config.js'
 import { getAllSongs, getFavorites, getFavoriteSet, toggleFavorite as dbToggleFav, deleteSong as dbDeleteSong } from '../db.js'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
@@ -136,20 +141,22 @@ const route = useRoute()
 const { isMobile } = useMobile()
 
 const {
-  state: playerState,
-  rawState,
+  currentSong: playerCurrentSong,
+  isPlaying: isPlayerPlaying,
+  currentIndex: playerIndex,
+  songs: playerSongList,
   setSongs,
-  playSong: playerPlaySong,
+  playAt: playerPlayAt,
   playSongById: playerPlaySongById,
   setShowLyrics
 } = usePlayer()
 
-// 获取封面 URL
+// 获取封面 URL（无封面时使用默认封面）
 function getCoverUrl(song) {
-  if (!song) return ''
+  if (!song) return DEFAULT_COVER
   if (song.coverBlob) return URL.createObjectURL(song.coverBlob)
   if (song.cover) return song.cover
-  return ''
+  return DEFAULT_COVER
 }
 
 const songs = ref([])
@@ -220,7 +227,7 @@ function getCoverOrigin(index) {
 
 function playAll() {
   setSongs(songs.value)
-  playerPlaySong(0)
+  playerPlayAt(0)
   setShowLyrics(true, { x: 60, y: window.innerHeight - 60 })
 }
 
@@ -230,26 +237,30 @@ function playAt(index, event) {
 
   const origin = getCoverOrigin(index)
 
-  // 如果点击的是当前正在播放的歌曲，直接打开歌词页
-  if (playerState.currentSong && song.id === playerState.currentSong.id) {
-    setShowLyrics(true, origin)
+  // 如果点击的是当前正在播放的歌曲，打开歌词页
+  if (playerCurrentSong?.value && song.id === playerCurrentSong?.value.id) {
+    // 刷新页面后 audio.src 为空，需要重新播放
+    if (!isPlayerPlaying.value) {
+      playerPlayAt(index)
+    } else {
+      setShowLyrics(true, origin)
+    }
     return
   }
 
-  // 否则切歌并打开歌词页
+  // 否则切歌：移动端仅切歌不打开歌词页，桌面端切歌同时打开歌词页
   setSongs(songs.value)
-  playerPlaySong(index)
-  setShowLyrics(true, origin)
+  playerPlayAt(index)
+  if (!isMobile.value) {
+    setShowLyrics(true, origin)
+  }
 }
 
 function playById(id) {
-  // 如果点击的是当前正在播放的歌曲，直接打开歌词页
-  if (playerState.currentSong && id === playerState.currentSong.id) {
+  if (playerCurrentSong?.value && id === playerCurrentSong?.value.id) {
     setShowLyrics(true, { x: window.innerWidth / 2, y: window.innerHeight / 2 })
     return
   }
-
-  // 否则切歌并打开歌词页
   setSongs(songs.value)
   playerPlaySongById(id)
   setShowLyrics(true, { x: window.innerWidth / 2, y: window.innerHeight / 2 })
@@ -288,10 +299,9 @@ function handleMenuCommand(command, song, index) {
       toggleFav(song)
       break
     case 'playNext':
-      // 将歌曲添加到下一首播放位置
-      const currentIdx = rawState.currentIndex
+      const currentIdx = playerIndex?.value
       if (currentIdx >= 0) {
-        rawState.songs.splice(currentIdx + 1, 0, song)
+        playerSongList.splice(currentIdx + 1, 0, song)
         ElMessage.success('已添加到下一首播放')
       } else {
         playAt(index)
@@ -305,126 +315,229 @@ function handleMenuCommand(command, song, index) {
 </script>
 
 <style scoped>
-.home-view { padding: 20px; height: 100%; }
-
-/* ===== 列表面板 ===== */
-.list-panel {
-  background: var(--ncm-bg-card);
-  border-radius: var(--ncm-radius-lg);
-  overflow: hidden;
-  box-shadow: var(--ncm-shadow);
-  border: 1px solid var(--ncm-border);
+.home-view {
+  padding: 32px 40px calc(var(--ncm-player-bar-height) + 48px);
+  min-height: 100%;
 }
 
-.list-toolbar {
+/* ===== 头部 ===== */
+.page-head {
   display: flex;
+  align-items: flex-end;
   justify-content: space-between;
-  align-items: center;
-  padding: 18px 24px;
-  border-bottom: 1px solid var(--ncm-border);
-  background: linear-gradient(180deg, rgba(255,255,255,0.02) 0%, transparent 100%);
+  margin-bottom: 24px;
+  gap: 16px;
 }
 
-.toolbar-left {
+.head-meta {
   display: flex;
   align-items: baseline;
-  gap: 12px;
+  gap: 16px;
+  min-width: 0;
 }
 
-.toolbar-left h2 {
-  font-size: 18px;
-  font-weight: 600;
+.page-title {
+  font-size: var(--ncm-text-3xl);
+  font-weight: 700;
   color: var(--ncm-text-primary);
+  letter-spacing: -0.02em;
   margin: 0;
+  line-height: 1.1;
 }
 
-.song-count {
-  font-size: 12px;
+.page-sub {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
   color: var(--ncm-text-tertiary);
+  font-size: var(--ncm-text-sm);
 }
 
-/* ===== 表格 ===== */
-.song-table {
+.count {
+  font-weight: 600;
+  color: var(--ncm-text-secondary);
+}
+
+.count-label {
+  letter-spacing: 0.02em;
+}
+
+.head-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.primary-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: var(--ncm-radius-full);
+  background: var(--ncm-primary);
+  color: #fff;
+  border: none;
+  font-size: var(--ncm-text-md);
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--ncm-transition-fast);
+  box-shadow: 0 4px 14px var(--ncm-primary-glow);
+}
+
+.primary-btn:hover:not(:disabled) {
+  background: var(--ncm-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px var(--ncm-primary-glow);
+}
+
+.primary-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.primary-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ===== 列表 ===== */
+.song-list {
   min-height: 200px;
 }
 
-.table-header {
+.row {
   display: flex;
   align-items: center;
-  padding: 12px 24px;
-  background: rgba(255, 255, 255, 0.02);
-  border-bottom: 1px solid var(--ncm-border);
-  font-size: 12px;
-  color: var(--ncm-text-tertiary);
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
-
-.table-row {
-  display: flex;
-  align-items: center;
-  padding: 12px 24px;
-  border-bottom: 1px solid var(--ncm-border-light);
+  padding: 10px 12px;
+  border-radius: var(--ncm-radius-sm);
   cursor: pointer;
-  transition: var(--ncm-transition-fast);
+  transition: background 0.15s var(--ncm-ease);
+  position: relative;
 }
 
-.table-row:hover {
+.row:hover {
   background: var(--ncm-bg-hover);
 }
 
-.table-row.active {
+.row.active {
   background: var(--ncm-bg-active);
 }
 
-.table-row.active .song-name {
-  color: var(--ncm-primary);
+.row.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: var(--ncm-primary);
+  border-radius: 0 2px 2px 0;
 }
 
-.table-row.active .col-index {
-  color: var(--ncm-primary);
+.row-head {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--ncm-border);
+  border-radius: 0;
+  font-size: var(--ncm-text-xs);
+  color: var(--ncm-text-tertiary);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: default;
+  background: transparent;
 }
 
-.col-index {
-  width: 40px;
-  font-size: 13px;
-  color: var(--ncm-text-placeholder);
+.row-head:hover {
+  background: transparent;
+}
+
+.cell {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.cell-index {
+  width: 48px;
   flex-shrink: 0;
-  text-align: center;
+  justify-content: center;
+  color: var(--ncm-text-tertiary);
+  font-size: var(--ncm-text-md);
 }
 
-.playing-icon {
+.row-head .cell-index {
+  color: var(--ncm-text-quaternary);
+}
+
+.idx-text {
+  font-variant-numeric: tabular-nums;
+  transition: color 0.15s;
+}
+
+.row:hover .idx-text {
+  color: var(--ncm-text-secondary);
+}
+
+.row.active .cell-index {
   color: var(--ncm-primary);
-  animation: pulse 1.5s ease-in-out infinite;
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+/* 播放波形 */
+.playing-wave {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 16px;
 }
 
-.col-title {
+.playing-wave span {
+  width: 2px;
+  background: var(--ncm-primary);
+  border-radius: 1px;
+  height: 30%;
+  animation: wave-bounce 0.9s ease-in-out infinite;
+}
+
+.playing-wave span:nth-child(1) { animation-delay: 0s; height: 60%; }
+.playing-wave span:nth-child(2) { animation-delay: 0.15s; height: 100%; }
+.playing-wave span:nth-child(3) { animation-delay: 0.3s; height: 40%; }
+.playing-wave span:nth-child(4) { animation-delay: 0.45s; height: 80%; }
+
+.playing-wave.paused span {
+  animation-play-state: paused;
+  height: 30% !important;
+}
+
+@keyframes wave-bounce {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
+
+.cell-title {
   flex: 1;
   min-width: 0;
   padding-right: 16px;
-  display: flex;
-  align-items: center;
   gap: 12px;
-  cursor: pointer;
 }
 
 .song-cover {
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--ncm-radius-sm);
   overflow: hidden;
   flex-shrink: 0;
   background: var(--ncm-bg-input);
-  transition: var(--ncm-transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ncm-text-tertiary);
+  transition: transform 0.2s var(--ncm-ease-out);
+  box-shadow: var(--ncm-shadow-sm);
 }
 
-.table-row:hover .song-cover {
-  transform: scale(1.05);
+.row:hover .song-cover {
+  transform: scale(1.06);
 }
 
 .song-cover img {
@@ -433,201 +546,183 @@ function handleMenuCommand(command, song, index) {
   object-fit: cover;
 }
 
-.song-cover.placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--ncm-text-placeholder);
-}
-
 .song-info {
   min-width: 0;
   flex: 1;
 }
 
 .song-name {
-  font-size: 13px;
+  font-size: var(--ncm-text-md);
   color: var(--ncm-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-weight: 500;
 }
 
-.col-artist {
-  width: 120px;
-  font-size: 13px;
+.row.active .song-name {
+  color: var(--ncm-primary);
+}
+
+.fav-mark {
+  color: var(--ncm-primary);
+  flex-shrink: 0;
+}
+
+.cell-artist {
+  width: 180px;
+  font-size: var(--ncm-text-md);
   color: var(--ncm-text-secondary);
   flex-shrink: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  cursor: pointer;
 }
 
-.fav-icon-small {
-  color: var(--ncm-primary);
-  flex-shrink: 0;
-  margin-left: 6px;
+.row-head .cell-artist {
+  color: var(--ncm-text-quaternary);
+  font-weight: 600;
 }
 
-.col-actions {
-  width: 80px;
+.cell-actions {
+  width: 96px;
   display: flex;
   justify-content: flex-end;
   gap: 4px;
   flex-shrink: 0;
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity 0.18s var(--ncm-ease);
 }
 
-.table-row:hover .col-actions {
+.row:hover .cell-actions,
+.row.active .cell-actions {
   opacity: 1;
 }
 
-.action-btn {
-  color: var(--ncm-text-tertiary) !important;
-  padding: 6px !important;
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--ncm-radius-sm);
+  background: transparent;
+  border: none;
+  color: var(--ncm-text-tertiary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: var(--ncm-transition-fast);
 }
 
-.action-btn:hover {
-  color: var(--ncm-text-primary) !important;
+.icon-btn:hover {
+  background: var(--ncm-bg-hover);
+  color: var(--ncm-text-primary);
+  transform: translateY(-1px);
 }
 
-.action-btn.is-fav {
-  color: var(--ncm-primary) !important;
+.icon-btn.is-fav {
+  color: var(--ncm-primary);
 }
 
-.del-btn:hover {
-  color: #F56C6C !important;
+.icon-btn.danger:hover {
+  color: #ff5a5a;
 }
 
+/* ===== 空状态 ===== */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 80px 20px;
+  padding: 100px 20px;
+  gap: 16px;
 }
 
-/* ===== 右侧面板 ===== */
-.side-panel { display: flex; flex-direction: column; gap: 16px; }
-
-.side-card {
-  background: var(--ncm-bg-card);
-  border-radius: var(--ncm-radius-md);
-  box-shadow: var(--ncm-shadow);
-  overflow: hidden;
-  transition: var(--ncm-transition);
+.empty-mark {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--ncm-bg-elevated);
   border: 1px solid var(--ncm-border);
-}
-
-.card-title {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 14px 16px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--ncm-text-primary);
-  border-bottom: 1px solid var(--ncm-border);
+  justify-content: center;
+  color: var(--ncm-text-tertiary);
 }
 
-.card-body { padding: 4px 0; }
-
-.empty-fav {
-  padding: 30px 16px;
-  text-align: center;
-  font-size: 13px;
-  color: var(--ncm-text-placeholder);
+.empty-text {
+  font-size: var(--ncm-text-md);
+  color: var(--ncm-text-tertiary);
 }
-
-.fav-list { max-height: 360px; overflow-y: auto; }
-
-.fav-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 16px;
-  cursor: pointer;
-  transition: var(--ncm-transition-fast);
-}
-
-.fav-item:hover { background: var(--ncm-bg-hover); }
-.fav-item.active .fav-name { color: var(--ncm-primary); }
-.fav-info { min-width: 0; flex: 1; }
-.fav-name { display: block; font-size: 13px; color: var(--ncm-text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.fav-artist { display: block; font-size: 11px; color: var(--ncm-text-tertiary); margin-top: 2px; }
-.fav-dur { font-size: 11px; color: var(--ncm-text-placeholder); margin-left: 12px; flex-shrink: 0; }
 
 /* ===== 移动端 ===== */
 @media (max-width: 768px) {
-  .home-view { padding: 0; }
-  .list-panel { border-radius: 0; box-shadow: none; }
-  .list-toolbar { padding: 14px 16px; }
-  .toolbar-left h2 { font-size: 16px; }
+  .home-view { padding: 16px 16px calc(var(--ncm-player-bar-height-mobile) + var(--ncm-tabbar-height-mobile) + var(--ncm-safe-bottom) + 32px); }
 
-  .table-row.is-mobile {
-    display: flex;
-    align-items: center;
-    padding: 12px 16px;
+  .page-head {
+    margin-bottom: 16px;
+  }
+
+  .page-title {
+    font-size: var(--ncm-text-2xl);
+  }
+
+  .row.is-mobile {
+    padding: 10px 8px;
+    gap: 0;
+  }
+
+  .row.is-mobile .cell-index {
+    width: 32px;
+    font-size: var(--ncm-text-sm);
+  }
+
+  .row.is-mobile .cell-title {
     gap: 12px;
+    padding-right: 8px;
   }
 
-  .table-row.is-mobile .col-index {
-    width: 28px;
-    font-size: 12px;
-    flex-shrink: 0;
-    text-align: center;
+  .row.is-mobile .song-cover {
+    width: 44px;
+    height: 44px;
   }
 
-  .table-row.is-mobile .col-title {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .table-row.is-mobile .song-cover {
-    width: 40px;
-    height: 40px;
-  }
-
-  .table-row.is-mobile .song-info {
-    flex: 1;
-    min-width: 0;
+  .row.is-mobile .song-name {
+    font-size: var(--ncm-text-md);
   }
 
   .song-artist-mobile {
-    font-size: 11px;
+    font-size: var(--ncm-text-xs);
     color: var(--ncm-text-tertiary);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 3px;
-    margin-top: 2px;
+    margin-top: 3px;
+    display: block;
   }
 
-  .col-actions.mobile-visible {
+  .col-actions.mobile-visible,
+  .cell-actions.mobile-visible {
     opacity: 1 !important;
     width: auto;
-    display: flex;
-    align-items: center;
     gap: 0;
-    flex-shrink: 0;
   }
 
-  .col-actions.mobile-visible .action-btn {
-    padding: 10px !important;
+  .cell-actions.mobile-visible .icon-btn {
+    width: 40px;
+    height: 40px;
   }
 
-  .col-actions.mobile-visible .action-btn:active {
+  .cell-actions.mobile-visible .icon-btn:active {
     opacity: 0.6;
+    transform: none;
+  }
+
+  .row.is-mobile {
+    min-height: 56px;
+    padding: 10px 8px;
   }
 }
 
@@ -641,24 +736,36 @@ function handleMenuCommand(command, song, index) {
   padding: 0;
   display: flex;
   flex-direction: column;
-  background: var(--ncm-bg-main);
+  background: var(--ncm-bg-elevated);
+}
+
+.mobile-menu-handle {
+  width: 40px;
+  height: 4px;
+  background: var(--ncm-border-strong);
+  border-radius: 2px;
+  margin: 10px auto 4px;
 }
 
 .mobile-menu-header {
-  padding: 12px 12px 10px;
+  padding: 12px 16px 14px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   border-bottom: 1px solid var(--ncm-border);
 }
 
 .mobile-menu-cover {
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   border-radius: var(--ncm-radius-sm);
   overflow: hidden;
   flex-shrink: 0;
   background: var(--ncm-bg-input);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ncm-text-tertiary);
 }
 
 .mobile-menu-cover img {
@@ -667,30 +774,23 @@ function handleMenuCommand(command, song, index) {
   object-fit: cover;
 }
 
-.mobile-menu-cover.placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--ncm-text-placeholder);
-}
-
 .mobile-menu-info {
   flex: 1;
   min-width: 0;
 }
 
 .mobile-menu-title {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--ncm-text-inverse);
+  font-size: var(--ncm-text-lg);
+  font-weight: 600;
+  color: var(--ncm-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .mobile-menu-artist {
-  font-size: 12px;
-  color: rgba(255,255,255,0.5);
+  font-size: var(--ncm-text-sm);
+  color: var(--ncm-text-tertiary);
   margin-top: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -698,26 +798,26 @@ function handleMenuCommand(command, song, index) {
 }
 
 .mobile-menu-list {
-  padding: 8px 12px 12px;
+  padding: 8px 12px 16px;
 }
 
 .mobile-menu-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
-  font-size: 14px;
-  color: var(--ncm-text-inverse);
+  gap: 14px;
+  padding: 14px 12px;
+  font-size: var(--ncm-text-md);
+  color: var(--ncm-text-primary);
   cursor: pointer;
-  border-radius: var(--ncm-radius-md);
-  transition: var(--ncm-transition-fast);
+  border-radius: var(--ncm-radius-sm);
+  transition: background 0.15s;
 }
 
 .mobile-menu-item:active {
-  background: rgba(255,255,255,0.1);
+  background: var(--ncm-bg-hover);
 }
 
 .mobile-menu-item.danger {
-  color: #F56C6C;
+  color: #ff5a5a;
 }
 </style>
