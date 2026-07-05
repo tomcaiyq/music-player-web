@@ -117,6 +117,9 @@ export const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleW
  * Web/Tauri 端调用为 no-op。
  */
 export async function initSafeArea() {
+  // 先应用调试覆盖值（从 localStorage 读取）
+  applyDebugOverrides()
+
   if (!isNativePlatform()) return
 
   try {
@@ -124,6 +127,31 @@ export async function initSafeArea() {
     await StatusBar.setStyle({ style: Style.Dark })
   } catch (e) {
     console.warn('StatusBar plugin unavailable:', e)
+  }
+}
+
+// ===== 调试覆盖：用户在 DebugPanel 里手动调整的值 =====
+export const DEBUG_STORAGE_KEY = 'ncm_debug_overrides'
+
+export function getDebugOverrides() {
+  try {
+    const raw = localStorage.getItem(DEBUG_STORAGE_KEY)
+    if (!raw) return null
+    return JSON.parse(raw)
+  } catch { return null }
+}
+
+export function applyDebugOverrides() {
+  const ov = getDebugOverrides()
+  if (!ov) return
+  if (ov.appHeight != null && !isNaN(ov.appHeight)) {
+    document.documentElement.style.setProperty('--app-height', ov.appHeight + 'px')
+  }
+  if (ov.safeTop != null && !isNaN(ov.safeTop)) {
+    document.documentElement.style.setProperty('--ncm-safe-top', ov.safeTop + 'px')
+  }
+  if (ov.safeBottom != null && !isNaN(ov.safeBottom)) {
+    document.documentElement.style.setProperty('--ncm-safe-bottom', ov.safeBottom + 'px')
   }
 }
 

@@ -3,7 +3,7 @@
     <!-- 顶部栏：与侧边栏同深，构成 L 型骨架 -->
     <header class="ncm-header">
       <div class="brand">
-        <div class="brand-mark">
+        <div class="brand-mark" @click="onBrandClick">
           <NcmIcon name="headset" :size="18" />
         </div>
         <span class="brand-name">云音乐</span>
@@ -112,6 +112,9 @@
       @toggle-favorite="toggleFavoriteCurrent"
       @change-play-mode="setPlayMode"
     />
+
+    <!-- 调试面板：连续点击左上角图标 5 次进入 -->
+    <DebugPanel v-model:visible="showDebug" />
   </div>
 </template>
 
@@ -126,9 +129,24 @@ import { ElMessage } from 'element-plus'
 import NcmIcon from './components/NcmIcon.vue'
 import LyricsPanel from './components/LyricsPanel.vue'
 import PlayerBar from './components/PlayerBar.vue'
+import DebugPanel from './components/DebugPanel.vue'
 
 const route = useRoute()
 const { isMobile } = useMobile()
+
+// ===== 调试面板：连续点击左上角图标 5 次进入 =====
+const showDebug = ref(false)
+const clickCount = ref(0)
+let clickTimer = null
+function onBrandClick() {
+  clickCount.value++
+  if (clickTimer) clearTimeout(clickTimer)
+  clickTimer = setTimeout(() => { clickCount.value = 0 }, 800)
+  if (clickCount.value >= 5) {
+    clickCount.value = 0
+    showDebug.value = true
+  }
+}
 
 const activeRoute = computed(() => {
   if (route.query.tab === 'favorites') return '/?tab=favorites'
