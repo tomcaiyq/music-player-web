@@ -241,6 +241,9 @@ async function toggleFavoriteCurrent() {
   height: var(--app-height, 100dvh);
   background: var(--ncm-bg-app);
   overflow: hidden;
+  /* 作为移动端 tabbar / player-bar absolute 定位的参照系，
+     让 --app-height 变化时这些底部元素跟着容器底部走，而非贴 viewport 底部 */
+  position: relative;
 }
 
 /* 支持 dvh 时优先用 dvh 作为回退（仍可被 --app-height 覆盖） */
@@ -504,11 +507,11 @@ async function toggleFavoriteCurrent() {
 
 /* ===== 移动端底部 Tab Bar ===== */
 .mobile-tabbar {
-  position: fixed;
+  position: absolute;
   left: 0;
   right: 0;
-  /* 安卓底部系统导航栏会遮挡 viewport 底部，用 --ncm-safe-bottom 抬起；
-     调试面板可调整此变量，未设置时默认 0 */
+  /* 贴 .ncm-app 容器底部，--app-height 变化时跟着走；
+     --ncm-safe-bottom 再向上抬起，避开系统导航栏 */
   bottom: var(--ncm-safe-bottom, 0px);
   height: var(--ncm-tabbar-height-mobile);
   background: rgba(12, 12, 15, 0.95);

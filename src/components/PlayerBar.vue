@@ -686,10 +686,10 @@ function handleOutsideClick(e) {
 
 /* ============ 移动端播放栏（单行 + 底部进度条） ============ */
 .player-bar.is-mobile {
-  position: fixed;
+  position: absolute;
   left: 0;
   right: 0;
-  /* 播放栏位于 tabbar 之上，叠加 safe-bottom 避免被系统导航栏遮挡 */
+  /* 贴 .ncm-app 容器底部，位于 tabbar 之上，叠加 safe-bottom 避免被系统导航栏遮挡 */
   bottom: calc(var(--ncm-tabbar-height-mobile) + var(--ncm-safe-bottom, 0px));
   height: auto;
   padding: 8px 12px 16px; /* 底部 16px 留给进度条 */
