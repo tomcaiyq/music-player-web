@@ -1045,7 +1045,7 @@ function handleOutsideClick(e) {
 }
 
 .mobile-playlist-drawer {
-  position: fixed;
+  position: absolute;
   bottom: var(--ncm-safe-bottom, 0px);
   left: 0;
   right: 0;

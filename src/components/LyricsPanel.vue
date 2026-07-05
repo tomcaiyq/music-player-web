@@ -285,13 +285,22 @@ function close() {
 <style scoped>
 .lyrics-panel {
   position: fixed;
-  inset: 0;
+  left: 0;
+  right: 0;
+  top: 0;
+  /* 高度用 --app-height（原生平台已自动设为可见区域高度），避免底部被系统导航栏遮挡 */
+  height: var(--app-height, 100vh);
+  height: var(--app-height, 100dvh);
   z-index: 2000;
   background: rgba(0, 0, 0, 0.92);
   display: flex;
   align-items: center;
   justify-content: center;
   backdrop-filter: blur(24px);
+}
+
+@supports (height: 100dvh) {
+  .lyrics-panel { height: var(--app-height, 100dvh); }
 }
 
 .lyrics-fade-enter-active {

@@ -906,7 +906,7 @@ async function saveSong(index) {
 
 /* ===== 移动端 ===== */
 @media (max-width: 768px) {
-  .search-view { padding: 16px 16px calc(var(--ncm-player-bar-height-mobile) + var(--ncm-tabbar-height-mobile) + 32px); }
+  .search-view { padding: 16px 16px calc(var(--ncm-player-bar-height-mobile) + var(--ncm-tabbar-height-mobile) + var(--ncm-safe-bottom, 0px) + 32px); }
 
   .page-title { font-size: var(--ncm-text-2xl); }
   .page-sub { font-size: var(--ncm-text-sm); margin-bottom: 16px; }
@@ -1022,14 +1022,14 @@ async function saveSong(index) {
 }
 
 .mobile-menu-drawer {
-  position: fixed;
-  bottom: 0;
+  position: absolute;
+  bottom: var(--ncm-safe-bottom, 0px);
   left: 0;
   right: 0;
   background: var(--ncm-bg-elevated);
   border-top-left-radius: var(--ncm-radius-xl);
   border-top-right-radius: var(--ncm-radius-xl);
-  padding: 8px 0 calc(env(safe-area-inset-bottom, 0) + 16px);
+  padding: 8px 0 16px;
   z-index: 1200;
   box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.5);
 }
