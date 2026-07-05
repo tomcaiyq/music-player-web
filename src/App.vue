@@ -510,7 +510,8 @@ async function toggleFavoriteCurrent() {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 0;
+  /* 贴 .ncm-app 容器底部，再用 --ncm-safe-bottom 抬起避开系统导航栏/home indicator */
+  bottom: var(--ncm-safe-bottom, 0px);
   height: var(--ncm-tabbar-height-mobile);
   background: rgba(12, 12, 15, 0.95);
   backdrop-filter: blur(20px);

@@ -689,7 +689,8 @@ function handleOutsideClick(e) {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: var(--ncm-tabbar-height-mobile);
+  /* 贴 tabbar 之上，叠加 safe-bottom 一起抬升 */
+  bottom: calc(var(--ncm-tabbar-height-mobile) + var(--ncm-safe-bottom, 0px));
   height: auto;
   padding: 8px 12px 16px;
   background: var(--ncm-bg-player);
@@ -1045,8 +1046,8 @@ function handleOutsideClick(e) {
 
 .mobile-playlist-drawer {
   position: fixed;
-  /* bottom = 整屏高度 - 可见区域高度，让抽屉贴可见区域底部，不被系统导航栏遮挡 */
-  bottom: calc(100vh - var(--app-height, 100vh));
+  /* bottom = 整屏高度 - 可见区域高度 + safe-bottom，让抽屉贴可见区域底部并避开系统导航栏 */
+  bottom: calc(100vh - var(--app-height, 100vh) + var(--ncm-safe-bottom, 0px));
   left: 0;
   right: 0;
   max-height: 75vh;

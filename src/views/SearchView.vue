@@ -906,7 +906,7 @@ async function saveSong(index) {
 
 /* ===== 移动端 ===== */
 @media (max-width: 768px) {
-  .search-view { padding: 16px 16px calc(var(--ncm-player-bar-height-mobile) + var(--ncm-tabbar-height-mobile) + 32px); }
+  .search-view { padding: 16px 16px calc(var(--ncm-player-bar-height-mobile) + var(--ncm-tabbar-height-mobile) + var(--ncm-safe-bottom, 0px) + 32px); }
 
   .page-title { font-size: var(--ncm-text-2xl); }
   .page-sub { font-size: var(--ncm-text-sm); margin-bottom: 16px; }
@@ -1023,8 +1023,8 @@ async function saveSong(index) {
 
 .mobile-menu-drawer {
   position: fixed;
-  /* bottom = 整屏高度 - 可见区域高度，让抽屉贴可见区域底部，不被系统导航栏遮挡 */
-  bottom: calc(100vh - var(--app-height, 100vh));
+  /* bottom = 整屏高度 - 可见区域高度 + safe-bottom，让抽屉贴可见区域底部并避开系统导航栏 */
+  bottom: calc(100vh - var(--app-height, 100vh) + var(--ncm-safe-bottom, 0px));
   left: 0;
   right: 0;
   background: var(--ncm-bg-elevated);
