@@ -510,9 +510,7 @@ async function toggleFavoriteCurrent() {
   position: absolute;
   left: 0;
   right: 0;
-  /* 贴 .ncm-app 容器底部，--app-height 变化时跟着走；
-     --ncm-safe-bottom 再向上抬起，避开系统导航栏 */
-  bottom: var(--ncm-safe-bottom, 0px);
+  bottom: 0;
   height: var(--ncm-tabbar-height-mobile);
   background: rgba(12, 12, 15, 0.95);
   backdrop-filter: blur(20px);

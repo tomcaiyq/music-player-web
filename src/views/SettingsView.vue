@@ -235,7 +235,7 @@ import { DEFAULT_AVATAR } from '../config.js'
 /* ===== 移动端 ===== */
 @media (max-width: 768px) {
   .settings-view {
-    padding: 16px 16px calc(var(--ncm-player-bar-height-mobile) + var(--ncm-tabbar-height-mobile) + var(--ncm-safe-bottom, 0px) + 32px);
+    padding: 16px 16px calc(var(--ncm-player-bar-height-mobile) + var(--ncm-tabbar-height-mobile) + 32px);
   }
 
   .page-head {

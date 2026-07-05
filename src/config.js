@@ -121,10 +121,11 @@ export async function initSafeArea() {
 
   if (!isNativePlatform()) return
 
-  // 自动设置 --app-height 为可见区域高度（调试覆盖值优先）
+  // 自动设置 --app-height 为 window.innerHeight（可见区域高度）
+  // 调试面板保存的覆盖值优先
   function applyAutoAppHeight() {
     const ov = getDebugOverrides()
-    if (ov && ov.appHeight != null && !isNaN(ov.appHeight)) return // 用户已手动设置，跳过
+    if (ov && ov.appHeight != null && !isNaN(ov.appHeight)) return
     document.documentElement.style.setProperty('--app-height', window.innerHeight + 'px')
   }
   applyAutoAppHeight()
