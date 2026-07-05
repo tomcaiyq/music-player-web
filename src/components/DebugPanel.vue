@@ -184,8 +184,10 @@ function reset() {
 
 function applyPreset(type) {
   if (type === 'innerHeight') {
-    setAppHeight(window.innerHeight)
-    form.appHeight = window.innerHeight
+    // 优先用 visualViewport.height（实际可见高度，不含系统导航栏遮挡）
+    const h = (window.visualViewport && window.visualViewport.height) || window.innerHeight
+    setAppHeight(h)
+    form.appHeight = h
   } else if (type === 'dvh') {
     document.documentElement.style.removeProperty('--app-height')
     form.appHeight = null
@@ -199,11 +201,11 @@ watch(() => props.visible, (v) => {
   if (v) {
     refreshInfo()
     const cur = collectCurrent()
-    // 首次进入（没有任何覆盖值）时，自动用 window.innerHeight 填入并应用一次
+    // 首次进入（没有任何覆盖值）时，自动用 visualViewport.height 填入并应用一次
     if (cur.appHeight == null) {
-      const innerH = window.innerHeight
-      form.appHeight = innerH
-      setAppHeight(innerH)
+      const visibleH = (window.visualViewport && window.visualViewport.height) || window.innerHeight
+      form.appHeight = visibleH
+      setAppHeight(visibleH)
     } else {
       form.appHeight = cur.appHeight
     }

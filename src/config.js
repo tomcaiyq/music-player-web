@@ -109,9 +109,9 @@ export const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleW
  * 安卓 WebView 上 100vh / 100dvh 通常等于整屏高度（含系统导航栏），
  * 导致 position:absolute/fixed 的底部元素被系统导航栏遮挡。
  *
- * 解决：原生平台启动时自动把 --app-height 设为 window.innerHeight
- * （可见区域高度，不含系统导航栏），并监听 resize 实时更新。
- * 用户在 DebugPanel 保存的覆盖值优先级更高，不会被自动值覆盖。
+ * 解决：原生平台启动时自动把 --app-height 设为实际可见区域高度。
+ * 优先用 visualViewport.height（不包含被系统 UI 遮挡的部分），
+ * 回退到 window.innerHeight。用户在 DebugPanel 保存的覆盖值优先级更高。
  *
  * Web/Tauri 端为 no-op（100dvh 在浏览器里就是可见区域高度）。
  */
@@ -121,16 +121,28 @@ export async function initSafeArea() {
 
   if (!isNativePlatform()) return
 
-  // 自动设置 --app-height 为 window.innerHeight（可见区域高度）
+  // 获取实际可见区域高度（不含系统导航栏遮挡部分）
+  // visualViewport.height 在安卓 WebView 上更准确，window.innerHeight 可能包含被遮挡区域
+  function getVisibleHeight() {
+    if (window.visualViewport && window.visualViewport.height) {
+      return window.visualViewport.height
+    }
+    return window.innerHeight
+  }
+
+  // 自动设置 --app-height 为可见区域高度
   // 调试面板保存的覆盖值优先
   function applyAutoAppHeight() {
     const ov = getDebugOverrides()
     if (ov && ov.appHeight != null && !isNaN(ov.appHeight)) return
-    document.documentElement.style.setProperty('--app-height', window.innerHeight + 'px')
+    document.documentElement.style.setProperty('--app-height', getVisibleHeight() + 'px')
   }
   applyAutoAppHeight()
   window.addEventListener('resize', applyAutoAppHeight)
   window.addEventListener('orientationchange', () => setTimeout(applyAutoAppHeight, 200))
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', applyAutoAppHeight)
+  }
 
   try {
     const { StatusBar, Style } = await import('@capacitor/status-bar')
