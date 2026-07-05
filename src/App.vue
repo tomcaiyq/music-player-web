@@ -220,13 +220,15 @@ async function toggleFavoriteCurrent() {
   flex-direction: column;
   height: 100vh;
   height: 100dvh;
+  /* 原生平台由 initSafeArea() 注入 --app-height = window.innerHeight */
+  height: var(--app-height, 100dvh);
   background: var(--ncm-bg-app);
   overflow: hidden;
 }
 
 /* 移动端 viewport-fit=cover 时确保底部不被浏览器工具栏遮挡 */
 @supports (height: 100dvh) {
-  .ncm-app { height: 100dvh; }
+  .ncm-app { height: var(--app-height, 100dvh); }
 }
 
 /* ===== 顶部栏 ===== */

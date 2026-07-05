@@ -106,43 +106,69 @@ export const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleW
 /**
  * 初始化原生平台安全区（状态栏 + 底部导航栏）
  *
- * 安卓 WebView 不支持 env(safe-area-inset-*)，需通过插件 / viewport 动态获取：
- *  - 顶部：用 @capacitor/status-bar 的 getInfo() 获取状态栏高度
- *  - 底部：监听 visualViewport.resize，计算 window.innerHeight - visualViewport.height
+ * 安卓 WebView 的核心问题：
+ *  1. env(safe-area-inset-*) 在安卓 WebView 不生效
+ *  2. 100vh / 100dvh 可能等于屏幕物理高度（含系统 UI 区域），导致 fixed bottom 元素被导航栏遮挡
+ *  3. visualViewport.height 在全屏 WebView 上等于 window.innerHeight，差值为 0
  *
- * 把实际像素值写入 :root 的 CSS 变量：
- *  - --ncm-safe-top
- *  - --ncm-safe-bottom
+ * 解决方案：
+ *  - 顶部：StatusBar.setOverlaysWebView(false) 让状态栏不覆盖 WebView
+ *  - 容器高度：用 window.innerHeight 动态设置 --app-height，确保不超出可见区域
+ *  - 底部：用 window.innerHeight 与屏幕物理高度的差值推算导航栏高度
  *
- * Web/Tauri 端调用为 no-op，保留 env() 默认值。
+ * Web/Tauri 端调用为 no-op。
  */
 export async function initSafeArea() {
   if (!isNativePlatform()) return
 
-  // 顶部状态栏
+  // 顶部状态栏：让 WebView 避开状态栏
   try {
     const { StatusBar, Style } = await import('@capacitor/status-bar')
     await StatusBar.setStyle({ style: Style.Dark })
+    // 关键：让状态栏不覆盖 WebView，WebView 从状态栏下方开始
+    await StatusBar.setOverlaysWebView({ overlay: false })
     const info = await StatusBar.getInfo()
     if (info && typeof info.height === 'number') {
-      // height 单位为像素（已转换为 CSS px）
       document.documentElement.style.setProperty('--ncm-safe-top', info.height + 'px')
     }
   } catch (e) {
     console.warn('StatusBar plugin unavailable:', e)
   }
 
-  // 底部导航栏：通过 visualViewport 推算
-  // 安卓底部地址栏/导航栏会导致 visualViewport.height < window.innerHeight
+  // 动态设置容器高度为可见区域高度，避免 100vh/100dvh 包含系统 UI 区域
+  function updateAppHeight() {
+    document.documentElement.style.setProperty('--app-height', window.innerHeight + 'px')
+  }
+
+  // 推算底部导航栏高度：屏幕物理高度 - 可见高度
   function updateBottomInset() {
-    const vv = window.visualViewport
-    if (!vv) return
-    const inset = Math.max(0, window.innerHeight - vv.height)
+    // screen.height 是设备物理屏幕高度，innerHeight 是 WebView 可见高度
+    // 如果 WebView 避开了导航栏，innerHeight < screen.height，差值即为安全区
+    const screenH = window.screen.height
+    const innerH = window.innerHeight
+    let inset = 0
+    if (screenH > innerH) {
+      inset = screenH - innerH
+      // 减去状态栏高度（已通过 overlaysWebView 处理，避免重复计算）
+      const safeTop = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ncm-safe-top')) || 0
+      inset = Math.max(0, inset - safeTop)
+    }
+    // 限制在合理范围（0-100px）
+    inset = Math.min(100, Math.max(0, inset))
     document.documentElement.style.setProperty('--ncm-safe-bottom', inset + 'px')
   }
+
+  function onResize() {
+    updateAppHeight()
+    updateBottomInset()
+  }
+
+  updateAppHeight()
   updateBottomInset()
+  window.addEventListener('resize', onResize)
+  window.addEventListener('orientationchange', () => setTimeout(onResize, 200))
   if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', updateBottomInset)
+    window.visualViewport.addEventListener('resize', onResize)
   }
 }
 
