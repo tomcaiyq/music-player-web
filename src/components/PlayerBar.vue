@@ -689,7 +689,8 @@ function handleOutsideClick(e) {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: var(--ncm-tabbar-height-mobile);
+  /* 播放栏位于 tabbar 之上，叠加 safe-bottom 避免被系统导航栏遮挡 */
+  bottom: calc(var(--ncm-tabbar-height-mobile) + var(--ncm-safe-bottom, 0px));
   height: auto;
   padding: 8px 12px 16px; /* 底部 16px 留给进度条 */
   background: var(--ncm-bg-player);
@@ -1045,7 +1046,7 @@ function handleOutsideClick(e) {
 
 .mobile-playlist-drawer {
   position: fixed;
-  bottom: 0;
+  bottom: var(--ncm-safe-bottom, 0px);
   left: 0;
   right: 0;
   max-height: 75vh;

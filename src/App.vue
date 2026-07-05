@@ -236,15 +236,16 @@ async function toggleFavoriteCurrent() {
 .ncm-app {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  height: 100dvh;
+  /* 调试面板可通过 --app-height 覆盖可见区域高度，未设置时回退到 100dvh / 100vh */
+  height: var(--app-height, 100vh);
+  height: var(--app-height, 100dvh);
   background: var(--ncm-bg-app);
   overflow: hidden;
 }
 
-/* 移动端 viewport-fit=cover 时确保底部不被浏览器工具栏遮挡 */
+/* 支持 dvh 时优先用 dvh 作为回退（仍可被 --app-height 覆盖） */
 @supports (height: 100dvh) {
-  .ncm-app { height: 100dvh; }
+  .ncm-app { height: var(--app-height, 100dvh); }
 }
 
 /* ===== 顶部栏 ===== */
@@ -506,7 +507,9 @@ async function toggleFavoriteCurrent() {
   position: fixed;
   left: 0;
   right: 0;
-  bottom: 0;
+  /* 安卓底部系统导航栏会遮挡 viewport 底部，用 --ncm-safe-bottom 抬起；
+     调试面板可调整此变量，未设置时默认 0 */
+  bottom: var(--ncm-safe-bottom, 0px);
   height: var(--ncm-tabbar-height-mobile);
   background: rgba(12, 12, 15, 0.95);
   backdrop-filter: blur(20px);
