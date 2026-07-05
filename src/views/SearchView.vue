@@ -890,7 +890,7 @@ async function saveSong(index) {
 
 /* ===== 移动端 ===== */
 @media (max-width: 768px) {
-  .search-view { padding: 16px 16px calc(var(--ncm-player-bar-height-mobile) + var(--ncm-tabbar-height-mobile) + var(--ncm-safe-bottom) + 32px); }
+  .search-view { padding: 16px 16px calc(var(--ncm-player-bar-height-mobile) + var(--ncm-tabbar-height-mobile) + 32px); }
 
   .page-title { font-size: var(--ncm-text-2xl); }
   .page-sub { font-size: var(--ncm-text-sm); margin-bottom: 16px; }

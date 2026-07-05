@@ -224,6 +224,8 @@ async function toggleFavoriteCurrent() {
   height: var(--app-height, 100dvh);
   background: var(--ncm-bg-app);
   overflow: hidden;
+  /* 作为移动端 position:absolute 元素的定位上下文 */
+  position: relative;
 }
 
 /* 移动端 viewport-fit=cover 时确保底部不被浏览器工具栏遮挡 */
@@ -246,7 +248,7 @@ async function toggleFavoriteCurrent() {
   z-index: 10;
 }
 
-/* 移动端/原生平台：顶部加状态栏安全区 */
+/* 移动端：顶部加状态栏安全区（原生平台已通过 setOverlaysWebView 处理） */
 @media (max-width: 768px) {
   .ncm-header {
     padding-top: var(--ncm-safe-top);
@@ -487,12 +489,12 @@ async function toggleFavoriteCurrent() {
 
 /* ===== 移动端底部 Tab Bar ===== */
 .mobile-tabbar {
-  position: fixed;
+  /* 用 absolute 替代 fixed：相对于 .ncm-app 定位，不会被系统导航栏遮挡 */
+  position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: calc(var(--ncm-tabbar-height-mobile) + var(--ncm-safe-bottom));
-  padding-bottom: var(--ncm-safe-bottom);
+  height: var(--ncm-tabbar-height-mobile);
   background: rgba(12, 12, 15, 0.95);
   backdrop-filter: blur(20px);
   border-top: 1px solid var(--ncm-border);

@@ -104,17 +104,14 @@ export function proxyUrl(url) {
 export const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1'
 
 /**
- * 初始化原生平台安全区（状态栏 + 底部导航栏）
+ * 初始化原生平台安全区
  *
- * 安卓 WebView 的核心问题：
- *  1. env(safe-area-inset-*) 在安卓 WebView 不生效
- *  2. 100vh / 100dvh 可能等于屏幕物理高度（含系统 UI 区域），导致 fixed bottom 元素被导航栏遮挡
- *  3. visualViewport.height 在全屏 WebView 上等于 window.innerHeight，差值为 0
- *
- * 解决方案：
- *  - 顶部：StatusBar.setOverlaysWebView(false) 让状态栏不覆盖 WebView
- *  - 容器高度：用 window.innerHeight 动态设置 --app-height，确保不超出可见区域
- *  - 底部：用 window.innerHeight 与屏幕物理高度的差值推算导航栏高度
+ * 核心策略（不再依赖 env() 或 visualViewport 推算）：
+ *  - 容器高度：用 window.innerHeight 动态设置 --app-height
+ *    （innerHeight 是 WebView 可见区域，不包含被系统 UI 遮挡的部分）
+ *  - 所有移动端底部元素用 position:absolute（相对于 .ncm-app）
+ *    而不是 position:fixed（相对于 viewport）
+ *  - 这样元素被容器约束，物理上不可能溢出屏幕
  *
  * Web/Tauri 端调用为 no-op。
  */
@@ -125,51 +122,20 @@ export async function initSafeArea() {
   try {
     const { StatusBar, Style } = await import('@capacitor/status-bar')
     await StatusBar.setStyle({ style: Style.Dark })
-    // 关键：让状态栏不覆盖 WebView，WebView 从状态栏下方开始
     await StatusBar.setOverlaysWebView({ overlay: false })
-    const info = await StatusBar.getInfo()
-    if (info && typeof info.height === 'number') {
-      document.documentElement.style.setProperty('--ncm-safe-top', info.height + 'px')
-    }
   } catch (e) {
     console.warn('StatusBar plugin unavailable:', e)
   }
 
-  // 动态设置容器高度为可见区域高度，避免 100vh/100dvh 包含系统 UI 区域
+  // 动态设置容器高度为可见区域高度
+  // window.innerHeight 在安卓 WebView 上准确反映可见区域（已避开系统 UI）
   function updateAppHeight() {
     document.documentElement.style.setProperty('--app-height', window.innerHeight + 'px')
   }
 
-  // 推算底部导航栏高度：屏幕物理高度 - 可见高度
-  function updateBottomInset() {
-    // screen.height 是设备物理屏幕高度，innerHeight 是 WebView 可见高度
-    // 如果 WebView 避开了导航栏，innerHeight < screen.height，差值即为安全区
-    const screenH = window.screen.height
-    const innerH = window.innerHeight
-    let inset = 0
-    if (screenH > innerH) {
-      inset = screenH - innerH
-      // 减去状态栏高度（已通过 overlaysWebView 处理，避免重复计算）
-      const safeTop = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ncm-safe-top')) || 0
-      inset = Math.max(0, inset - safeTop)
-    }
-    // 限制在合理范围（0-100px）
-    inset = Math.min(100, Math.max(0, inset))
-    document.documentElement.style.setProperty('--ncm-safe-bottom', inset + 'px')
-  }
-
-  function onResize() {
-    updateAppHeight()
-    updateBottomInset()
-  }
-
   updateAppHeight()
-  updateBottomInset()
-  window.addEventListener('resize', onResize)
-  window.addEventListener('orientationchange', () => setTimeout(onResize, 200))
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', onResize)
-  }
+  window.addEventListener('resize', updateAppHeight)
+  window.addEventListener('orientationchange', () => setTimeout(updateAppHeight, 200))
 }
 
 // 搜歌 API 配置 (cn.apihz.cn)

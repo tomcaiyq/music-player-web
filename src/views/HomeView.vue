@@ -659,7 +659,7 @@ function handleMenuCommand(command, song, index) {
 
 /* ===== 移动端 ===== */
 @media (max-width: 768px) {
-  .home-view { padding: 16px 16px calc(var(--ncm-player-bar-height-mobile) + var(--ncm-tabbar-height-mobile) + var(--ncm-safe-bottom) + 32px); }
+  .home-view { padding: 16px 16px calc(var(--ncm-player-bar-height-mobile) + var(--ncm-tabbar-height-mobile) + 32px); }
 
   .page-head {
     margin-bottom: 16px;
