@@ -39,7 +39,7 @@ jobs:
       - name: Add Capacitor Android
         run: npx cap add android
 
-      - name: Opt out edge-to-edge (fix: 系统导航栏遮挡底部 tabbar)
+      - name: "Opt out edge-to-edge (fix: 系统导航栏遮挡底部 tabbar)"
         run: |
           STYLES=android/app/src/main/res/values/styles.xml
           echo "=== 修改前 ==="
