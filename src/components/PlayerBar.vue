@@ -686,8 +686,7 @@ function handleOutsideClick(e) {
 
 /* ============ 移动端播放栏（单行 + 底部进度条） ============ */
 .player-bar.is-mobile {
-  /* 用 absolute 替代 fixed：相对于 .ncm-app 定位，不会被系统导航栏遮挡 */
-  position: absolute;
+  position: fixed;
   left: 0;
   right: 0;
   bottom: var(--ncm-tabbar-height-mobile);
@@ -1037,8 +1036,7 @@ function handleOutsideClick(e) {
 
 /* ============ 移动端底部抽屉 ============ */
 .mobile-drawer-mask {
-  /* absolute 替代 fixed，相对于 .ncm-app 定位 */
-  position: absolute;
+  position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(2px);
@@ -1046,8 +1044,7 @@ function handleOutsideClick(e) {
 }
 
 .mobile-playlist-drawer {
-  /* absolute 替代 fixed，相对于 .ncm-app 定位 */
-  position: absolute;
+  position: fixed;
   bottom: 0;
   left: 0;
   right: 0;

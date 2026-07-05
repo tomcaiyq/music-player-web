@@ -104,38 +104,27 @@ export function proxyUrl(url) {
 export const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1'
 
 /**
- * 初始化原生平台安全区
+ * 初始化原生平台 UI
  *
- * 核心策略（不再依赖 env() 或 visualViewport 推算）：
- *  - 容器高度：用 window.innerHeight 动态设置 --app-height
- *    （innerHeight 是 WebView 可见区域，不包含被系统 UI 遮挡的部分）
- *  - 所有移动端底部元素用 position:absolute（相对于 .ncm-app）
- *    而不是 position:fixed（相对于 viewport）
- *  - 这样元素被容器约束，物理上不可能溢出屏幕
+ * 核心策略：让系统 UI（状态栏、导航栏）自己占位，WebView 自然获得可见区域。
+ * 这样 100vh / 100dvh / position:fixed 都能正常工作，无需任何手动测量。
+ *
+ * 实现方式：
+ *  - capacitor.config.json 配置 StatusBar.overlaysWebView: false
+ *    （让状态栏不覆盖 WebView，WebView 从状态栏下方开始绘制）
+ *  - 这里仅设状态栏样式为深色背景
  *
  * Web/Tauri 端调用为 no-op。
  */
 export async function initSafeArea() {
   if (!isNativePlatform()) return
 
-  // 顶部状态栏：让 WebView 避开状态栏
   try {
     const { StatusBar, Style } = await import('@capacitor/status-bar')
     await StatusBar.setStyle({ style: Style.Dark })
-    await StatusBar.setOverlaysWebView({ overlay: false })
   } catch (e) {
     console.warn('StatusBar plugin unavailable:', e)
   }
-
-  // 动态设置容器高度为可见区域高度
-  // window.innerHeight 在安卓 WebView 上准确反映可见区域（已避开系统 UI）
-  function updateAppHeight() {
-    document.documentElement.style.setProperty('--app-height', window.innerHeight + 'px')
-  }
-
-  updateAppHeight()
-  window.addEventListener('resize', updateAppHeight)
-  window.addEventListener('orientationchange', () => setTimeout(updateAppHeight, 200))
 }
 
 // 搜歌 API 配置 (cn.apihz.cn)
