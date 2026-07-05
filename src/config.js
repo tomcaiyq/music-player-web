@@ -106,21 +106,30 @@ export const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleW
 /**
  * 初始化原生平台 UI
  *
- * 核心策略：让系统 UI（状态栏、导航栏）自己占位，WebView 自然获得可见区域。
- * 这样 100vh / 100dvh / position:fixed 都能正常工作，无需任何手动测量。
+ * 安卓 WebView 上 100vh / 100dvh 通常等于整屏高度（含系统导航栏），
+ * 导致 position:absolute/fixed 的底部元素被系统导航栏遮挡。
  *
- * 实现方式：
- *  - capacitor.config.json 配置 StatusBar.overlaysWebView: false
- *    （让状态栏不覆盖 WebView，WebView 从状态栏下方开始绘制）
- *  - 这里仅设状态栏样式为深色背景
+ * 解决：原生平台启动时自动把 --app-height 设为 window.innerHeight
+ * （可见区域高度，不含系统导航栏），并监听 resize 实时更新。
+ * 用户在 DebugPanel 保存的覆盖值优先级更高，不会被自动值覆盖。
  *
- * Web/Tauri 端调用为 no-op。
+ * Web/Tauri 端为 no-op（100dvh 在浏览器里就是可见区域高度）。
  */
 export async function initSafeArea() {
   // 先应用调试覆盖值（从 localStorage 读取）
   applyDebugOverrides()
 
   if (!isNativePlatform()) return
+
+  // 自动设置 --app-height 为可见区域高度（调试覆盖值优先）
+  function applyAutoAppHeight() {
+    const ov = getDebugOverrides()
+    if (ov && ov.appHeight != null && !isNaN(ov.appHeight)) return // 用户已手动设置，跳过
+    document.documentElement.style.setProperty('--app-height', window.innerHeight + 'px')
+  }
+  applyAutoAppHeight()
+  window.addEventListener('resize', applyAutoAppHeight)
+  window.addEventListener('orientationchange', () => setTimeout(applyAutoAppHeight, 200))
 
   try {
     const { StatusBar, Style } = await import('@capacitor/status-bar')

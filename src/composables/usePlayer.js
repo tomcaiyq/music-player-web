@@ -88,7 +88,25 @@ async function getAudioSrc(song) {
       return song.url
     }
   }
+  // 4. 在线歌曲懒加载：调用方注册的回调（如 SearchView 拉取 audioUrl）
+  if (typeof onMissingSrcCallback === 'function') {
+    try {
+      const url = await onMissingSrcCallback(song)
+      if (url) {
+        song.url = url
+        return url
+      }
+    } catch (e) {
+      console.warn('onMissingSrc callback failed:', e.message)
+    }
+  }
   return null
+}
+
+// 在线歌曲缺音频源时的懒加载回调（由搜索页等注册）
+let onMissingSrcCallback = null
+function setOnMissingSrc(fn) {
+  onMissingSrcCallback = fn
 }
 
 // Audio 事件监听
@@ -330,5 +348,6 @@ export function usePlayer() {
     toggleFavorite,
     setSongs,
     playSongById,
+    setOnMissingSrc,
   }
 }

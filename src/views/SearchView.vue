@@ -160,7 +160,25 @@ import { SONG_SEARCH_API, SEARCH_API_ID, SEARCH_API_KEY, MP3_BASE_URL, DEFAULT_C
 
 const { isMobile } = useMobile()
 const route = useRoute()
-const { setSongs, playAt } = usePlayer()
+const { setSongs, playAt, setOnMissingSrc } = usePlayer()
+
+// 注册懒加载回调：播放器切到没有 audioUrl 的在线歌曲时，由这里拉取
+setOnMissingSrc(async (playerSong) => {
+  // playerSong.id 形如 online_${id}，从搜索结果里找到对应歌曲
+  const match = /online_(.+)$/.exec(playerSong.id || '')
+  if (!match) return null
+  const onlineId = match[1]
+  const r = results.value.find(s => String(s.id) === onlineId)
+  if (!r) return null
+  // 已缓存就直接用
+  if (r.audioUrl) return r.audioUrl
+  // 否则现拉
+  const meta = await fetchSongMetaFromPage(r.pageUrl)
+  if (!meta.audioUrl) return null
+  r.audioUrl = meta.audioUrl
+  r.lyricUrl = meta.lyricUrl
+  return meta.audioUrl
+})
 
 const query = ref('')
 const results = ref([])
@@ -364,18 +382,16 @@ async function playSong(index) {
       id: `online_${s.id}`,
       title: s.title,
       artist: s.artist,
-      audioUrl: '',
+      audioUrl: s.audioUrl || '',
       audioBlob: null,
       cover: DEFAULT_COVER,
-      lrc: '',
+      lrc: s.lrc || '',
       duration: '--:--',
       _unavailable: s._unavailable || false
     }))
 
     playerSongs[index].audioUrl = audioUrl
     playerSongs[index].audioBlob = audioBlob
-    playerSongs[index].title = song.title
-    playerSongs[index].artist = song.artist
     playerSongs[index].lrc = lrc
 
     await addSong({
