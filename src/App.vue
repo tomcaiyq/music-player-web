@@ -548,15 +548,16 @@ async function toggleFavoriteCurrent() {
 
 @media (max-width: 768px) {
   .ncm-body {
+    flex-direction: column;
     flex: 1;
     min-height: 0;
     overflow: hidden;
   }
 
   .ncm-main {
-    overflow-y: auto;
-    height: 100%;
+    flex: 1;
     min-height: 0;
+    overflow-y: auto;
   }
 
   /* header 移动端隐藏 */
