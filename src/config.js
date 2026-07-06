@@ -137,12 +137,35 @@ export async function initSafeArea() {
     if (ov && ov.appHeight != null && !isNaN(ov.appHeight)) return
     document.documentElement.style.setProperty('--app-height', getVisibleHeight() + 'px')
   }
-  applyAutoAppHeight()
-  window.addEventListener('resize', applyAutoAppHeight)
-  window.addEventListener('orientationchange', () => setTimeout(applyAutoAppHeight, 200))
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', applyAutoAppHeight)
+  // 合并更新函数：同时计算高度和底部安全区
+  function applyAutoLayout() {
+    applyAutoAppHeight()
+    applySafeBottom()
   }
+
+  applyAutoLayout()
+  window.addEventListener('resize', applyAutoLayout)
+  window.addEventListener('orientationchange', () => setTimeout(applyAutoLayout, 200))
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', applyAutoLayout)
+  }
+
+  // 估算安卓底部安全区
+  // edge-to-edge 模式下 window.innerHeight = 整屏高度（含状态栏+导航栏），
+  // visualViewport.height = 可见区域高度。差值为上下系统栏总高。
+  // 用总高度的一半作为底部导航栏的估算值，键盘打开时不更新
+  function applySafeBottom() {
+    const ov = getDebugOverrides()
+    if (ov && ov.safeBottom != null && !isNaN(ov.safeBottom)) return
+    if (!window.visualViewport || !window.visualViewport.height) return
+    const diff = window.innerHeight - window.visualViewport.height
+    // 键盘打开时 visualViewport 大幅缩小，diff 异常变大，此时不更新
+    if (diff > 0 && diff < 200 && window.visualViewport.height > window.innerHeight * 0.6) {
+      const safeBottom = Math.round(diff * 0.5)
+      document.documentElement.style.setProperty('--ncm-safe-bottom', safeBottom + 'px')
+    }
+  }
+  applySafeBottom()
 
   try {
     const { StatusBar, Style } = await import('@capacitor/status-bar')

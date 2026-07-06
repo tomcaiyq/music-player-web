@@ -686,7 +686,7 @@ function handleOutsideClick(e) {
 
 /* ============ 移动端播放栏（单行 + 底部进度条） ============ */
 .player-bar.is-mobile {
-  position: fixed;
+  position: absolute;
   left: 0;
   right: 0;
   bottom: calc(var(--ncm-safe-bottom, 0px) + var(--ncm-tabbar-height-mobile));

@@ -507,13 +507,12 @@ async function toggleFavoriteCurrent() {
 
 /* ===== 移动端底部 Tab Bar ===== */
 .mobile-tabbar {
-  /* opt-out edge-to-edge 后 100vh = 可见区域高度，bottom:0 直接贴可见区域底部
-     --ncm-safe-bottom 用于额外避开 home indicator（iPhone）/手势条 */
-  position: fixed;
+  position: absolute;
   left: 0;
   right: 0;
-  bottom: var(--ncm-safe-bottom, 0px);
-  height: var(--ncm-tabbar-height-mobile);
+  bottom: 0;
+  padding-bottom: var(--ncm-safe-bottom, 0px);
+  height: calc(var(--ncm-tabbar-height-mobile) + var(--ncm-safe-bottom, 0px));
   background: rgba(12, 12, 15, 0.95);
   backdrop-filter: blur(20px);
   border-top: 1px solid var(--ncm-border);
@@ -558,10 +557,9 @@ async function toggleFavoriteCurrent() {
     overflow-y: auto;
   }
 
-  /* header 移动端调整 */
+  /* header 移动端隐藏 */
   .ncm-header {
-    padding: 0 16px;
-    -webkit-app-region: no-drag;
+    display: none;
   }
 
   .brand-name {
