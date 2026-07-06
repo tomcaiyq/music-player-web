@@ -560,8 +560,14 @@ async function toggleFavoriteCurrent() {
     overflow-y: auto;
   }
 
-  /* header 移动端隐藏 */
+  /* header 移动端精简显示（仅品牌图标 + 名称） */
   .ncm-header {
+    display: flex;
+    padding: 0 16px;
+    -webkit-app-region: no-drag;
+  }
+
+  .ncm-header .meta-pill {
     display: none;
   }
 
