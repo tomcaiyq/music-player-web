@@ -555,6 +555,8 @@ async function toggleFavoriteCurrent() {
 
   .ncm-main {
     overflow-y: auto;
+    height: 100%;
+    min-height: 0;
   }
 
   /* header 移动端隐藏 */
