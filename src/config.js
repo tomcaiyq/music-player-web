@@ -119,8 +119,6 @@ export async function initSafeArea() {
   // 先应用调试覆盖值（从 localStorage 读取）
   applyDebugOverrides()
 
-  if (!isNativePlatform()) return
-
   // 获取实际可见区域高度（不含系统导航栏遮挡部分）
   // visualViewport.height 在安卓 WebView 上更准确，window.innerHeight 可能包含被遮挡区域
   function getVisibleHeight() {
@@ -137,18 +135,6 @@ export async function initSafeArea() {
     if (ov && ov.appHeight != null && !isNaN(ov.appHeight)) return
     document.documentElement.style.setProperty('--app-height', getVisibleHeight() + 'px')
   }
-  // 合并更新函数：同时计算高度和底部安全区
-  function applyAutoLayout() {
-    applyAutoAppHeight()
-    applySafeBottom()
-  }
-
-  applyAutoLayout()
-  window.addEventListener('resize', applyAutoLayout)
-  window.addEventListener('orientationchange', () => setTimeout(applyAutoLayout, 200))
-  if (window.visualViewport) {
-    window.visualViewport.addEventListener('resize', applyAutoLayout)
-  }
 
   // 估算安卓底部安全区
   // edge-to-edge 模式下 window.innerHeight = 整屏高度（含状态栏+导航栏），
@@ -163,9 +149,28 @@ export async function initSafeArea() {
     if (diff > 0 && diff < 200 && window.visualViewport.height > window.innerHeight * 0.6) {
       const safeBottom = Math.round(diff * 0.5)
       document.documentElement.style.setProperty('--ncm-safe-bottom', safeBottom + 'px')
+      return
+    }
+    // 兜底：安卓 Chrome 上 diff 可能为 0，给一个最小安全区
+    if (/android/i.test(navigator.userAgent)) {
+      document.documentElement.style.setProperty('--ncm-safe-bottom', '8px')
     }
   }
-  applySafeBottom()
+
+  // 合并更新函数
+  function applyAutoLayout() {
+    applyAutoAppHeight()
+    applySafeBottom()
+  }
+
+  applyAutoLayout()
+  window.addEventListener('resize', applyAutoLayout)
+  window.addEventListener('orientationchange', () => setTimeout(applyAutoLayout, 200))
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', applyAutoLayout)
+  }
+
+  if (!isNativePlatform()) return
 
   try {
     const { StatusBar, Style } = await import('@capacitor/status-bar')
